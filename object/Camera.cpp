@@ -19,6 +19,13 @@ Camera::~Camera()
 
 }
 
+/// <summary>
+/// 更新
+/// </summary>
+/// <param name="input">keyの入力情報</param>
+/// <param name="player">プレイヤーのポインタ</param>
+/// <param name="pictographFlag">絵文字を操作しているかどうか</param>
+/// <param name="stick">padの右スティックの入力情報</param>
 void Camera::update(const InputState& input, std::shared_ptr<Player> player, bool pictographFlag, DINPUT_JOYSTATE& stick)
 {
 	{//カメラの角度調整
@@ -49,20 +56,26 @@ void Camera::update(const InputState& input, std::shared_ptr<Player> player, boo
 		}
 	}
 	
-	DrawFormatString(0, 90, 0xffffff, "%f", sideAngle_);
-
+	//プレイヤーに左右に動かした分のアングルを送る
 	player->setAngle(sideAngle_);
+	//カメラの座標更新
 	updateCamera(player->GetPos());
 
 }
 
+/// <summary>
+/// カメラの座標更新
+/// </summary>
+/// <param name="playerPos">プレイヤーの座標</param>
 void Camera::updateCamera(VECTOR playerPos)
 {
-	cameraAngle_ = (cameraAngle_ * 0.8f) + (sideAngle_ * 0.2f);
-	cameraAngle2_ = (cameraAngle2_ * 0.8f) + (verAngle_ * 0.2f);
-
-	MATRIX cameraRotMtx = MGetRotY(cameraAngle_);
-	MATRIX cameraRotMtx2 = MGetRotX(cameraAngle2_);
+	//上下左右の角度を取得する
+	cameraSideAngle_ = (cameraSideAngle_ * 0.8f) + (sideAngle_ * 0.2f);
+	cameraVerAngle_ = (cameraVerAngle_ * 0.8f) + (verAngle_ * 0.2f);
+	//Y行列回転の取得
+	MATRIX cameraRotMtx = MGetRotY(cameraSideAngle_);
+	//X行列回転の取得
+	MATRIX cameraRotMtx2 = MGetRotX(cameraVerAngle_);
 
 	// Y軸のカメラの追従
 	// ジャンプ時は単純にプレイヤーに追従するのではなく
@@ -88,52 +101,4 @@ void Camera::updateCamera(VECTOR playerPos)
 	// カメラの位置、どこを見ているかを設定する
 	SetCameraPositionAndTarget_UpVecY(cameraPos, playerPos);
 }
-
-//void Camera::update(VECTOR playerPos)
-//{
-//	float addX = 0.0f, addY = 0.0f,addZ = 0.0f;
-//
-//	radius_ = angle_ * 3.14f / 180.0f;
-//
-//	addX = sin(radius_) * 300.0f;
-//	addZ = cos(radius_) * 300.0f;
-//
-//	//addY = cos(verAngle_ * 3.14f / 180.0f) * ((addX * addX + addZ * addZ) * 300.0f);
-//
-//	pos_.x = playerPos.x + addX;
-//	pos_.y = 300.0f;
-//	//pos_.y = playerPos.y + addY;
-//	pos_.z = playerPos.z + addZ;
-//
-//	GetJoypadDirectInputState(DX_INPUT_PAD1, &stick);
-//
-//	{//カメラの角度調整
-//		// 左右キーで旋回する
-//		if (stick.Rx < -slope)
-//		{
-//			angle_ -= rot_speed;
-//		}
-//		if (stick.Rx > slope)
-//		{
-//			angle_ += rot_speed;
-//		}
-//		if (stick.Ry > slope)
-//		{
-//			verAngle_ += rot_speed;
-//		}
-//		if (stick.Ry < -slope)
-//		{
-//			verAngle_ -= rot_speed;
-//		}
-//	}
-//
-//	DrawSphere3D(pos_, 20, 32, 0xffff00, 0xffff00, true);
-//	//DrawCircleAA(pos_.x, pos_.z, 20, 32, 0xff0000, true);
-//	SetCameraPositionAndTarget_UpVecY(pos_, playerPos);
-//
-//	DrawFormatString(0, 260, 0xffffff, "%f", angle_);
-//	DrawFormatString(0, 275, 0xffffff, "%f", verAngle_);
-//	DrawFormatString(0, 290, 0xffffff, "%f,%f,%f", pos_.x, pos_.y, pos_.z);
-//
-//}
 

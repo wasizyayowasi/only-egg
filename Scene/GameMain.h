@@ -9,6 +9,7 @@ class Player;
 class Camera;
 class Model;
 class FryPan;
+class Bacon;
 
 class GameMain : public SceneBase
 {
@@ -28,7 +29,8 @@ private:
 	int pictographDiskHandle_ = -1;
 	int menugraphHandle_ = -1;
 	int resultgraphHandle_ = -1;
-	int clockgraphHandle_[13];
+	int clockgraphHandle_[16];
+	int gameOverHandle_ = -1;
 	//ƒV[ƒ“‘JˆÚŠÖŒW
 	bool deadFlag_ = false;
 	//ŠG•¶š‰~”Õ‚Ì•`‰æ”»’f
@@ -64,6 +66,7 @@ private:
 	std::shared_ptr<FryPan> fryPan_;
 	std::shared_ptr<Player> player_;
 	std::shared_ptr<Camera> camera_;
+	std::vector<std::shared_ptr<Bacon>> bacon_;
 
 	DINPUT_JOYSTATE stick_;
 };

@@ -29,6 +29,9 @@ public:
 
 	bool isAnimEnd();
 
+	bool isEnabled() { return isEnable_; }
+	void setIsEnable() { isEnable_ = false; }
+
 private:
 	struct AnimData {
 		int animNo;
@@ -48,6 +51,8 @@ private:
 	bool isUseCollision_ = false;
 
 	bool isUpdateCollsion_ = false;
+
+	bool isEnable_ = false;
 
 	int colFrameIndex_ = 0;
 

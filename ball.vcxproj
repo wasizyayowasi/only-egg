@@ -151,6 +151,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Scene\GameOver.cpp" />
+    <ClCompile Include="object\Bacon.cpp" />
     <ClCompile Include="object\Camera.cpp" />
     <ClCompile Include="object\FryPan.cpp" />
     <ClCompile Include="object\Map.cpp" />
@@ -169,6 +171,8 @@
     <ClCompile Include="util\Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Scene\GameOver.h" />
+    <ClInclude Include="object\Bacon.h" />
     <ClInclude Include="object\Camera.h" />
     <ClInclude Include="object\FryPan.h" />
     <ClInclude Include="object\Map.h" />

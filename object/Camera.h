@@ -22,8 +22,8 @@ public:
 	float verAngle_ = 0.0f;
 
 	// ƒJƒƒ‰‚ÌŒü‚¢‚Ä‚¢‚é•ûŒü
-	float cameraAngle_ = 0.0f;
-	float cameraAngle2_ = 0.0f;
+	float cameraSideAngle_ = 0.0f;
+	float cameraVerAngle_ = 0.0f;
 	//ƒJƒƒ‰‚ÌˆÊ’u
 	VECTOR cameraPos_ = { 0.0f,600.0f,1000.0f };
 

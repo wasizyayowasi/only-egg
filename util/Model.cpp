@@ -12,6 +12,8 @@ Model::Model(const char* fileName)
 
 	clearAnimData(animPrev_);
 	clearAnimData(animNext_);
+
+	isEnable_ = true;
 }
 
 Model::Model(int orgModel)
@@ -21,11 +23,13 @@ Model::Model(int orgModel)
 
 	clearAnimData(animPrev_);
 	clearAnimData(animNext_);
+
+	isEnable_ = true;
 }
 
 Model::Model()
 {
-
+	isEnable_ = true;
 }
 
 Model::~Model()

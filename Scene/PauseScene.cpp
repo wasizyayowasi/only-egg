@@ -2,14 +2,19 @@
 #include "SceneManager.h"
 #include "SceneTitle.h"
 #include "StageSelect.h"
+#include "GameOver.h"
 #include "GameMain.h"
+
 #include "DxLib.h"
+
 #include "../object/Player.h"
+
 #include "../util/InputState.h"
 #include "../util/game.h"
+
 #include<algorithm>
 
-PauseScene::PauseScene(SceneManager& manager, std::shared_ptr<Player> player,int handle):SceneBase(manager),player_(player),handle_(handle)
+PauseScene::PauseScene(SceneManager& manager, std::shared_ptr<Player> player,int handle, int gameoverHandle):SceneBase(manager),player_(player),handle_(handle), gameoverHandle_(gameoverHandle)
 {
 	
 }
@@ -47,7 +52,7 @@ void PauseScene::update(const InputState& input)
 			manager_.popScene();
 			break; 
 		case 2:
-			manager_.changeScene(new StageSelect(manager_));
+			manager_.pushScene(new GameOver(manager_, gameoverHandle_));
 			break;
 		case 3:
 			break;

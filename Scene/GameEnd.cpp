@@ -8,11 +8,22 @@
 #include "DxLib.h"
 #include <algorithm>
 
-GameEnd::GameEnd(SceneManager& manager, int resultHandle, int figureHandle[], int secondTime, int minuteTime,float remainingHp) : SceneBase(manager), resultHandle_(resultHandle), secondTime_(secondTime), minuteTime_(minuteTime), remainingHp_(remainingHp)
+GameEnd::GameEnd(SceneManager& manager, int resultHandle, int figureHandle[], int secondTime, int minuteTime,float remainingHp,int baconNum) : 
+	SceneBase(manager),
+	resultHandle_(resultHandle),
+	secondTime_(secondTime),
+	minuteTime_(minuteTime), 
+	remainingHp_(remainingHp),
+	baconNum_(baconNum)
 {
-	for (int i = 0; i < 13;i++) {
+	for (int i = 0; i < 16;i++) {
 		figureHandle_[i] = figureHandle[i];
 	}
+
+	for (auto& rewards : questRewards) {
+		rewards = false;
+	}
+
 }
 
 GameEnd::~GameEnd()
@@ -45,6 +56,24 @@ void GameEnd::update(const InputState& input)
 			break;
 		}
 	}
+
+	if (minuteTime_ < 7) {
+		if (minuteTime_ <= 6) {
+			questRewards[0] = true;
+		}
+		else if(minuteTime_ == 7 && secondTime_ == 0) {
+			questRewards[0] = true;
+		}
+	}
+
+	if (remainingHp_ * 100 > 50) {
+		questRewards[1] = true;
+	}
+
+	if (baconNum_ == 2) {
+		questRewards[2] = true;
+	}
+
 }
 
 /// <summary>
@@ -53,13 +82,11 @@ void GameEnd::update(const InputState& input)
 void GameEnd::draw()
 {
 
-	SetDrawBlendMode(DX_BLENDMODE_MULA, 196);//乗算合成
+	SetDrawBlendMode(DX_BLENDMODE_ADD, 100);//乗算合成
 	//ポーズウィンドウセロファン(黒い)
-	DrawBox(0, 0, Game::kScreenWidth, Game::kScreenHeight, 0x000000, true);
+	DrawBox(Game::kScreenWidth / 4, Game::kScreenHeight / 10, Game::kScreenWidth / 4 * 3, Game::kScreenHeight / 6 * 5, 0xffffff, true);
 
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);//通常描画に戻す
-	
-//	DrawBox(0, 0, Game::kScreenWidth, Game::kScreenHeight, 0xffffff, true);
 
 	DrawBox(610, 780, 955, 860, 0xffffff, true);
 	DrawBox(1010, 780,1355, 860, 0xffffff, true);
@@ -78,12 +105,31 @@ void GameEnd::draw()
 	DrawGraph(Game::kScreenWidth / 2 + 125, 295, figureHandle_[10], true);
 	DrawGraph(Game::kScreenWidth / 2 + 150, 295, figureHandle_[secondTime_ / 10], true);
 	DrawGraph(Game::kScreenWidth / 2 + 180, 295, figureHandle_[secondTime_ % 10], true);
+	//ベーコン獲得数
+	DrawGraph(Game::kScreenWidth / 2 +  80, 595, figureHandle_[baconNum_], true);
+	DrawGraph(Game::kScreenWidth / 2 + 110, 595, figureHandle_[13], true);
+	DrawGraph(Game::kScreenWidth / 2 + 140, 595, figureHandle_[2], true);
 
-	if (hpPercentRemaining >= 50) {
-		DrawGraph(Game::kScreenWidth / 2 + 110, Game::kScreenHeight / 2 - 10, figureHandle_[12], true);
+	int x = Game::kScreenWidth / 2 - 80;
+	//星
+	for (auto& rewards : questRewards) {
+		if (rewards) {
+			DrawGraph(x, 670, figureHandle_[14], true);
+		}
+		else {
+			DrawGraph(x, 670, figureHandle_[15], true);
+		}
+		x += 80;
 	}
 
-	DrawString(0, 0, "GameEnd", 0xffffff);
+	DrawGraph(Game::kScreenWidth / 2 + 140, 595, figureHandle_[2], true);
+
+	if (questRewards[0]) {
+		DrawGraph(Game::kScreenWidth / 2 + 110, Game::kScreenHeight / 2 - 75, figureHandle_[12], true);
+	}
+	if (questRewards[1]) {
+		DrawGraph(Game::kScreenWidth / 2 + 110, Game::kScreenHeight / 2 - 10, figureHandle_[12], true);
+	}
 
 }
 

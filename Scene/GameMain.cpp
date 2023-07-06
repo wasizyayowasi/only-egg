@@ -1,13 +1,15 @@
 #include "GameMain.h"
-#include "SceneManager.h"
-#include "GameEnd.h"
 
 #include "../object/Map.h"
 #include "../object/Player.h"
 #include "../object/Camera.h"
 #include "../object/FryPan.h"
+#include "../object/Bacon.h"
 
-#include "../Scene/PauseScene.h"
+#include "GameEnd.h"
+#include "SceneManager.h"
+#include "PauseScene.h"
+#include "GameOver.h"
 
 #include "../util/Model.h"
 #include "../util/game.h"
@@ -22,19 +24,23 @@ namespace {
 	const char* const menu_graph = "data/graph/menuGraph.png";
 	const char* const result_graph = "data/graph/result.png";
 	const char* const clock_graph = "data/graph/clock.png";
+	const char* const bacon_file_name = "data/object/bacon.mv1";
+	const char* const gameOver_file_name = "data/graph/gameover.png";
+	//複製ベーコン数
+	constexpr int duplication_bacon_num = 1;
 	//パッドの右スティックの傾き
 	constexpr float slope = 400.0f;
 	//傾くスピード
 	constexpr float rot_speed = 0.05f;
 	//絵文字のサイズ
-	constexpr int pictograph_Billborad_size = 80.0f;
+	constexpr int pictograph_Billborad_size = 80;
 	constexpr int pictograph_size = 100;
 	//絵文字の角度
 	constexpr float pictograph_angle = 0.0f;
 	//絵文字表示タイム
 	constexpr int display_time = 300;
 	//数字の画像数
-	constexpr int clockGraphNum_ = 13;
+	constexpr int clockGraphNum_ = 16;
 }
 
 GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),updateFunc_(&GameMain::fadeInUpdate),stageNum_(stageNum)
@@ -63,15 +69,23 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		player_ = std::make_shared<Player>();
 		camera_ = std::make_shared<Camera>();
 		fryPan_ = std::make_shared<FryPan>();
+		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
+		for (int i = 0; i < duplication_bacon_num; i++) {
+			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
+		}
 	}
 	
-	pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
-	menugraphHandle_ = LoadGraph(menu_graph);
-	resultgraphHandle_ = LoadGraph(result_graph);
-	LoadDivGraph(pictograph_file_name, 8, 8, 1, pictograph_size, pictograph_size, pictographHandle_);
-	LoadDivGraph(clock_graph, clockGraphNum_, clockGraphNum_, 1, pictograph_Billborad_size, pictograph_Billborad_size, clockgraphHandle_);
+	{//画像ロード
+		pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
+		menugraphHandle_ = LoadGraph(menu_graph);
+		resultgraphHandle_ = LoadGraph(result_graph);
+		gameOverHandle_ = LoadGraph(gameOver_file_name);
+		LoadDivGraph(pictograph_file_name, 8, 8, 1, pictograph_size, pictograph_size, pictographHandle_);
+		LoadDivGraph(clock_graph, clockGraphNum_, clockGraphNum_, 1, pictograph_Billborad_size, pictograph_Billborad_size, clockgraphHandle_);
+	}
 
 	player_->setMapData(map_);
+	
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -103,17 +117,27 @@ GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&Gam
 		SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
 	}
 
-	map_ = std::make_shared<Map>(stageNum_);
-	player_ = std::make_shared<Player>();
-	camera_ = std::make_shared<Camera>();
-	fryPan_ = std::make_shared<FryPan>();
+	{//生成
+		map_ = std::make_shared<Map>(stageNum_);
+		player_ = std::make_shared<Player>();
+		camera_ = std::make_shared<Camera>();
+		fryPan_ = std::make_shared<FryPan>();
+		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
+		for (int i = 0; i < duplication_bacon_num; i++) {
+			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
+		}
+	}
+
+	{//画像ロード
+		pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
+		menugraphHandle_ = LoadGraph(menu_graph);
+		resultgraphHandle_ = LoadGraph(result_graph);
+		gameOverHandle_ = LoadGraph(gameOver_file_name);
+		LoadDivGraph(pictograph_file_name, 8, 8, 1, pictograph_size, pictograph_size, pictographHandle_);
+		LoadDivGraph(clock_graph, clockGraphNum_, clockGraphNum_, 1, pictograph_Billborad_size, pictograph_Billborad_size, clockgraphHandle_);
+	}
 
 	player_->setMapData(map_);
-	pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
-	menugraphHandle_ = LoadGraph(menu_graph);
-	resultgraphHandle_ = LoadGraph(result_graph);
-	LoadDivGraph(pictograph_file_name, 8, 8, 1, pictograph_size, pictograph_size, pictographHandle_);
-	LoadDivGraph(clock_graph, clockGraphNum_, clockGraphNum_, 1, pictograph_Billborad_size, pictograph_Billborad_size, clockgraphHandle_);
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -128,9 +152,13 @@ GameMain::~GameMain()
 {
 	MV1TerminateCollInfo(player_->getModel(), -1);
 	MV1TerminateCollInfo(fryPan_->getModel(), -1);
+	for (auto& bacon : bacon_) {
+		MV1TerminateCollInfo(bacon->getModel(), -1);
+	}
 	DeleteGraph(pictographDiskHandle_);
 	DeleteGraph(menugraphHandle_);
 	DeleteGraph(resultgraphHandle_);
+	DeleteGraph(gameOverHandle_);
 	for (auto& graph : pictographHandle_) {
 		DeleteGraph(graph);
 	}
@@ -173,6 +201,9 @@ void GameMain::draw()
 	map_->draw();
 	player_->draw();
 	fryPan_->draw();
+	for (auto& bacon : bacon_) {
+		bacon->draw();
+	}
 
 	//絵文字円盤の描画
 	if (pictographFlag_) {
@@ -286,6 +317,8 @@ void GameMain::fadeInUpdate(const InputState& input)
 /// <param name="input"></param>
 void GameMain::normalUpdate(const InputState& input)
 {
+	deadFlag_ = false;
+
 	//絵文字表示時間
 	{
 		pictographDisplayCount_++;
@@ -304,32 +337,48 @@ void GameMain::normalUpdate(const InputState& input)
 	if (!deadFlag_) {
 		player_->update(input);
 		camera_->update(input,player_,pictographFlag_,stick_);
+		for (auto& bacon : bacon_) {
+			bacon->update();
+		}
 	}
 
 	if (player_->getState()) {
 		deadFlag_ = true;
 	}
 
-	MV1_COLL_RESULT_POLY_DIM result;
-	result = MV1CollCheck_Capsule(fryPan_->getModel(), fryPan_->getFrameIndex(), player_->GetPos(), player_->GetlastPos(),player_->getRadius());
+	MV1_COLL_RESULT_POLY_DIM fryPanResult;
+	MV1_COLL_RESULT_POLY_DIM baconResult[duplication_bacon_num + 1];
 
-	if (result.HitNum > 0) {
-		if (result.Dim->Normal.y > 0.000001) {
+	fryPanResult = MV1CollCheck_Capsule(fryPan_->getModel(), fryPan_->getFrameIndex(), player_->GetPos(), player_->GetlastPos(),player_->getRadius());
+	for (int i = 0; i < duplication_bacon_num + 1;i++) {
+		baconResult[i] = MV1CollCheck_Capsule(bacon_[i]->getModel(), bacon_[i]->getFrameIndex(), player_->GetPos(), player_->GetlastPos(), player_->getRadius());
+	}
+	
+
+	if (fryPanResult.HitNum > 0) {
+		if (fryPanResult.Dim->Normal.y > 0.000001) {
 			player_->stateChange();
 			player_->setPos(fryPan_->getPos());
 			updateFunc_ = &GameMain::fadeOutUpdate;
 		}
 	}
 
+	for (int i = 0; i < duplication_bacon_num + 1; i++) {
+		if (baconResult[i].HitNum > 0) {
+			bacon_[i]->setIsEnabled();
+		}
+	}
+	
+
 	if (deadFlag_) {
 		updateFunc_ = &GameMain::fadeOutUpdate;
 	}
 
 	if (input.isTriggered(InputType::pause)) {
-		manager_.pushScene(new PauseScene(manager_,player_, menugraphHandle_));
+		manager_.pushScene(new PauseScene(manager_,player_, menugraphHandle_,gameOverHandle_));
 	}
 
-	if (input.isTriggered(InputType::down)) {
+	if (input.isTriggered(InputType::pause)) {
 		updateFunc_ = &GameMain::fadeOutUpdate;
 	}
 
@@ -353,7 +402,11 @@ void GameMain::normalUpdate(const InputState& input)
 		temp = VNorm(temp);
 	}
 
+	MV1CollResultPolyDimTerminate(fryPanResult);
 
+	for (auto& result : baconResult) {
+		MV1CollResultPolyDimTerminate(result);
+	}
 
 	SetLightPosition({ player_->GetPos().x,player_->GetPos().y + 200,player_->GetPos().z });
 }
@@ -365,7 +418,19 @@ void GameMain::normalUpdate(const InputState& input)
 void GameMain::fadeOutUpdate(const InputState& input)
 {
 	float remainingHp_ = static_cast<float>(player_->getHp()) / 400.0f;
-	manager_.pushScene(new GameEnd(manager_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_));
+	int invalidBaconNum = 0;
+	for (auto& bacon : bacon_) {
+		if (!bacon->isEnabled()) {
+			invalidBaconNum++;
+		}
+	}
+
+	if (deadFlag_) {
+		manager_.pushScene(new GameOver(manager_, gameOverHandle_));
+	}
+	else {
+		manager_.pushScene(new GameEnd(manager_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_, invalidBaconNum));
+	}
 
 	/*fadeValue_ = static_cast <int>(255 * (static_cast<float>(fadeTimer_) / static_cast<float>(fadeInterval_)));
 	if (++fadeTimer_ == fadeInterval_) {
