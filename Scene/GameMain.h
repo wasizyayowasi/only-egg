@@ -67,6 +67,7 @@ private:
 	std::shared_ptr<Player> player_;
 	std::shared_ptr<Camera> camera_;
 	std::vector<std::shared_ptr<Bacon>> bacon_;
+	std::shared_ptr<Model> arrow_;
 
 	DINPUT_JOYSTATE stick_;
 };

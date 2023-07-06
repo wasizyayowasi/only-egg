@@ -26,6 +26,7 @@ namespace {
 	const char* const clock_graph = "data/graph/clock.png";
 	const char* const bacon_file_name = "data/object/bacon.mv1";
 	const char* const gameOver_file_name = "data/graph/gameover.png";
+	const char* const arrow_file_name = "data/object/arrow.mv1";
 	//複製ベーコン数
 	constexpr int duplication_bacon_num = 1;
 	//パッドの右スティックの傾き
@@ -41,6 +42,8 @@ namespace {
 	constexpr int display_time = 300;
 	//数字の画像数
 	constexpr int clockGraphNum_ = 16;
+	//矢印のサイズ
+	constexpr float arrow_scale = 50.0f;
 }
 
 GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),updateFunc_(&GameMain::fadeInUpdate),stageNum_(stageNum)
@@ -69,6 +72,7 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		player_ = std::make_shared<Player>();
 		camera_ = std::make_shared<Camera>();
 		fryPan_ = std::make_shared<FryPan>();
+		arrow_ = std::make_shared<Model>(arrow_file_name);
 		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
 		for (int i = 0; i < duplication_bacon_num; i++) {
 			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
@@ -85,7 +89,7 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 	}
 
 	player_->setMapData(map_);
-	
+	arrow_->setScale({ arrow_scale,arrow_scale,arrow_scale });
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -122,6 +126,7 @@ GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&Gam
 		player_ = std::make_shared<Player>();
 		camera_ = std::make_shared<Camera>();
 		fryPan_ = std::make_shared<FryPan>();
+		arrow_ = std::make_shared<Model>(arrow_file_name);
 		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
 		for (int i = 0; i < duplication_bacon_num; i++) {
 			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
@@ -138,6 +143,7 @@ GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&Gam
 	}
 
 	player_->setMapData(map_);
+	arrow_->setScale({ arrow_scale,arrow_scale,arrow_scale });
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -198,12 +204,15 @@ void GameMain::draw()
 		}
 	}
 
-	map_->draw();
-	player_->draw();
-	fryPan_->draw();
-	for (auto& bacon : bacon_) {
-		bacon->draw();
+	{//各オブジェクトの描画
+		map_->draw();
+		player_->draw();
+		fryPan_->draw();
+		for (auto& bacon : bacon_) {
+			bacon->draw();
+		}
 	}
+	
 
 	//絵文字円盤の描画
 	if (pictographFlag_) {
@@ -218,15 +227,18 @@ void GameMain::draw()
 		DrawBillboard3D(pictographPos, 0.5f, 0.5f, pictograph_Billborad_size, pictograph_angle, pictographHandle_[pictographNum_], true);
 	}
 
-	DrawFormatString(0, 115, 0xffffff, "%d:%d", clearTimeMinute_, clearTimeSecond_);
-
-	DrawBox(1700, 0, Game::kScreenWidth, 100, 0xffffff, true);
-
-	DrawGraph(1700, 10, clockgraphHandle_[clearTimeMinute_ / 10], true);
-	DrawGraph(1730, 10, clockgraphHandle_[clearTimeMinute_ % 10], true);
-	DrawGraph(1755, 10, clockgraphHandle_[10], true);
-	DrawGraph(1780, 10, clockgraphHandle_[clearTimeSecond_ / 10], true);
-	DrawGraph(1810, 10, clockgraphHandle_[clearTimeSecond_ % 10], true);
+	{//時計
+		//時計の背景
+		DrawBox(1700, 0, Game::kScreenWidth, 100, 0xffffff, true);
+		//数字の描画
+		DrawGraph(1700, 10, clockgraphHandle_[clearTimeMinute_ / 10], true);
+		DrawGraph(1730, 10, clockgraphHandle_[clearTimeMinute_ % 10], true);
+		DrawGraph(1755, 10, clockgraphHandle_[10], true);
+		DrawGraph(1780, 10, clockgraphHandle_[clearTimeSecond_ / 10], true);
+		DrawGraph(1810, 10, clockgraphHandle_[clearTimeSecond_ % 10], true);
+	}
+	
+	arrow_->draw();
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, fadeValue_);
 	//画面全体を真っ黒に塗りつぶす
@@ -334,27 +346,32 @@ void GameMain::normalUpdate(const InputState& input)
 	//絵文字更新
 	pictographUpdate(input);
 
-	if (!deadFlag_) {
-		player_->update(input);
-		camera_->update(input,player_,pictographFlag_,stick_);
-		for (auto& bacon : bacon_) {
-			bacon->update();
+	{//各オブジェクトの更新
+		if (!deadFlag_) {
+			player_->update(input);
+			camera_->update(input, player_, pictographFlag_, stick_);
+			for (auto& bacon : bacon_) {
+				bacon->update();
+			}
 		}
 	}
-
+	
+	//プレイヤーの状態を取得しtrueであればゲームを
+	//中断させるフラグを立てる
 	if (player_->getState()) {
 		deadFlag_ = true;
 	}
 
+	//当たり判定用変数
 	MV1_COLL_RESULT_POLY_DIM fryPanResult;
 	MV1_COLL_RESULT_POLY_DIM baconResult[duplication_bacon_num + 1];
-
+	//関数を使用し当たっているかの情報を変数に代入する
 	fryPanResult = MV1CollCheck_Capsule(fryPan_->getModel(), fryPan_->getFrameIndex(), player_->GetPos(), player_->GetlastPos(),player_->getRadius());
 	for (int i = 0; i < duplication_bacon_num + 1;i++) {
 		baconResult[i] = MV1CollCheck_Capsule(bacon_[i]->getModel(), bacon_[i]->getFrameIndex(), player_->GetPos(), player_->GetlastPos(), player_->getRadius());
 	}
 	
-
+	//フライパンとプレイヤーの当たり判定
 	if (fryPanResult.HitNum > 0) {
 		if (fryPanResult.Dim->Normal.y > 0.000001) {
 			player_->stateChange();
@@ -363,21 +380,24 @@ void GameMain::normalUpdate(const InputState& input)
 		}
 	}
 
+	//ベーコンとプレイヤーの当たり判定
 	for (int i = 0; i < duplication_bacon_num + 1; i++) {
 		if (baconResult[i].HitNum > 0) {
 			bacon_[i]->setIsEnabled();
 		}
 	}
 	
-
+	//メイン処理を終了させる
 	if (deadFlag_) {
 		updateFunc_ = &GameMain::fadeOutUpdate;
 	}
 
+	//ポーズ画面に移動
 	if (input.isTriggered(InputType::pause)) {
 		manager_.pushScene(new PauseScene(manager_,player_, menugraphHandle_,gameOverHandle_));
 	}
 
+	//いらない
 	if (input.isTriggered(InputType::pause)) {
 		updateFunc_ = &GameMain::fadeOutUpdate;
 	}
@@ -395,12 +415,16 @@ void GameMain::normalUpdate(const InputState& input)
 		}
 	}
 	
-	VECTOR temp;
-	temp =  VSub(player_->GetPos(), fryPan_->getPos());
-	float size = VSize(temp);
-	if (size > 0.0f) {
-		temp = VNorm(temp);
+	{//ゴールがどこにあるかを知らせるための矢印を作る予定
+		VECTOR temp;
+		temp =  VSub(player_->GetPos(), fryPan_->getPos());
+		float size = VSize(temp);
+		if (size > 0.0f) {
+			temp = VNorm(temp);
+		}
+		arrow_->setRot(temp);
 	}
+	
 
 	MV1CollResultPolyDimTerminate(fryPanResult);
 
