@@ -3,11 +3,13 @@
 
 namespace {
 	const char* const file_name = "data/object/fryPan.mv1";
+	constexpr float radius = 60.0f;
+	const VECTOR startPos = { 4945.0f,1025.0f,1345.0f };
 }
 
 FryPan::FryPan()
 {
-	pos_ = { 4945.0f,1025.0f,1345.0f };
+	pos_ = startPos;
 
 	fryPan_ = std::make_shared<Model>(file_name);
 	fryPan_->setScale({ 10.0f,10.0f ,10.0f });
@@ -21,6 +23,7 @@ FryPan::~FryPan()
 void FryPan::draw()
 {
 	fryPan_->draw();
+//	DrawSphere3D(pos_, radius, 32, 0xffffff, 0xffffff, true);
 }
 
 int FryPan::getModel()
@@ -36,4 +39,9 @@ int FryPan::getFrameIndex()
 VECTOR FryPan::getPos()
 {
 	return pos_;
+}
+
+float FryPan::getRadius()
+{
+	return radius;
 }

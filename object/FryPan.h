@@ -32,6 +32,8 @@ public:
 	/// </summary>
 	VECTOR getPos();
 
+	float getRadius();
+
 private:
 
 	std::shared_ptr<Model> fryPan_;

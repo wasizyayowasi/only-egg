@@ -334,7 +334,7 @@ void Player::draw()
 		sunnyEggModel_->draw();
 	}
 
-	hp_->draw();
+//	hp_->draw();
 	DrawFormatString(200, 40, 0xffffff, "%d", hp_->getHp());
 }
 
@@ -408,4 +408,9 @@ float Player::getRadius() const
 int Player::getHp() const
 {
 	return hp_->getHp();
+}
+
+int Player::getFrameIndex()
+{
+	return eggModel_->getColFrameIndex();
 }

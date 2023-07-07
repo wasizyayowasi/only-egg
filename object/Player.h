@@ -39,6 +39,8 @@ public:
 
 	int getHp()const;
 
+	int getFrameIndex();
+
 private:
 
 	int landingCount_ = 0;

@@ -43,7 +43,11 @@ namespace {
 	//数字の画像数
 	constexpr int clockGraphNum_ = 16;
 	//矢印のサイズ
-	constexpr float arrow_scale = 50.0f;
+	constexpr float arrow_scale = 0.1f;
+	//矢印の初期ベクトル
+	const VECTOR start_arrow_vec = { 0,0,-1 };
+	//矢印の配置場所(スクリーン座標)
+	const VECTOR arrow_pos = { Game::kScreenWidth / 2,80,0.2f };
 }
 
 GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),updateFunc_(&GameMain::fadeInUpdate),stageNum_(stageNum)
@@ -72,7 +76,9 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		player_ = std::make_shared<Player>();
 		camera_ = std::make_shared<Camera>();
 		fryPan_ = std::make_shared<FryPan>();
+
 		arrow_ = std::make_shared<Model>(arrow_file_name);
+
 		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
 		for (int i = 0; i < duplication_bacon_num; i++) {
 			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
@@ -89,7 +95,6 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 	}
 
 	player_->setMapData(map_);
-	arrow_->setScale({ arrow_scale,arrow_scale,arrow_scale });
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -143,7 +148,9 @@ GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&Gam
 	}
 
 	player_->setMapData(map_);
-	arrow_->setScale({ arrow_scale,arrow_scale,arrow_scale });
+
+	MATRIX scaleMtx = MGetScale(VGet(arrow_scale, arrow_scale, arrow_scale));
+	MV1SetMatrix(arrow_->getModelHandle(), scaleMtx);
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -187,7 +194,6 @@ void GameMain::update(const InputState& input)
 /// </summary>
 void GameMain::draw()
 {
-	//DrawString(0, 0, "GameMain", 0xffffff);
 
 	{//グリッド線表示　※消去予定
 		for (float x = -500.0f; x <= 500.0f; x += 100.0f)
@@ -208,8 +214,11 @@ void GameMain::draw()
 		map_->draw();
 		player_->draw();
 		fryPan_->draw();
+
+		arrow_->draw();
+
 		for (auto& bacon : bacon_) {
-			bacon->draw();
+			//bacon->draw();
 		}
 	}
 	
@@ -237,8 +246,9 @@ void GameMain::draw()
 		DrawGraph(1780, 10, clockgraphHandle_[clearTimeSecond_ / 10], true);
 		DrawGraph(1810, 10, clockgraphHandle_[clearTimeSecond_ % 10], true);
 	}
-	
-	arrow_->draw();
+
+	//ゴール文字の描画
+	DrawString(Game::kScreenWidth / 2 - 20, 20, "GOAL", 0xffffff);
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, fadeValue_);
 	//画面全体を真っ黒に塗りつぶす
@@ -370,9 +380,10 @@ void GameMain::normalUpdate(const InputState& input)
 	for (int i = 0; i < duplication_bacon_num + 1;i++) {
 		baconResult[i] = MV1CollCheck_Capsule(bacon_[i]->getModel(), bacon_[i]->getFrameIndex(), player_->GetPos(), player_->GetlastPos(), player_->getRadius());
 	}
-	
+
 	//フライパンとプレイヤーの当たり判定
 	if (fryPanResult.HitNum > 0) {
+		DrawString(0, 30, "hit", 0xffff00);
 		if (fryPanResult.Dim->Normal.y > 0.000001) {
 			player_->stateChange();
 			player_->setPos(fryPan_->getPos());
@@ -415,16 +426,25 @@ void GameMain::normalUpdate(const InputState& input)
 		}
 	}
 	
-	{//ゴールがどこにあるかを知らせるための矢印を作る予定
+	{//矢印の処理
+		//ゴールがどこにあるかを知らせるための矢印を作る予定
 		VECTOR temp;
-		temp =  VSub(player_->GetPos(), fryPan_->getPos());
-		float size = VSize(temp);
-		if (size > 0.0f) {
-			temp = VNorm(temp);
-		}
-		arrow_->setRot(temp);
+		MATRIX rotMtx;
+		//ゴールとプレイヤーのベクトルを取得
+		temp = VSub(fryPan_->getPos(), player_->GetPos());
+		//初期ベクトル(初期向き)とゴールとプレイヤーのベクトル(ゴールへ向き)を回転行列として取得する
+		rotMtx = MGetRotVec2(start_arrow_vec, temp);
+		//矢印の拡大率を行列を使って変更する
+		MATRIX scaleMtx = MGetScale(VGet(arrow_scale, arrow_scale, arrow_scale));
+		//回転行列と拡大率の行列をかける
+		MATRIX mtx = MMult(rotMtx, scaleMtx);
+		//平行移動マトリクスを上で作った拡大マトリクスと回転マトリクスにかける
+		mtx = MMult(mtx, MGetTranslate(ConvScreenPosToWorldPos(arrow_pos)));
+		//それをモデルにかける
+		MV1SetMatrix(arrow_->getModelHandle(), mtx);
 	}
 	
+
 
 	MV1CollResultPolyDimTerminate(fryPanResult);
 
@@ -433,6 +453,7 @@ void GameMain::normalUpdate(const InputState& input)
 	}
 
 	SetLightPosition({ player_->GetPos().x,player_->GetPos().y + 200,player_->GetPos().z });
+
 }
 
 /// <summary>
