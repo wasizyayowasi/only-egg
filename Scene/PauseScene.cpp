@@ -48,7 +48,7 @@ void PauseScene::update(const InputState& input)
 			manager_.popScene();
 			break;
 		case 1:
-			player_->setInitialPosition();
+			player_->resetInitial();
 			manager_.popScene();
 			break; 
 		case 2:

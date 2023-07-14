@@ -4,12 +4,14 @@
 namespace {
 	//ファイル名
 	const char* const egg_name = "data/mapObject/cube.mv1";
-	//const char* const stage_file_name = "data/mapObject/stage.mv1";
-	const char* const stage_file_name = "data/mapObject/stage.mv1";
+	const char* const stage_file_name = "data/mapObject/Yroom.mv1";
+	const char* const stage3_file_name = "data/mapObject/Nroom.mv1";
+	const char* const stage2_file_name = "data/mapObject/kago.mv1";
 
 	//サイズ
 	VECTOR groundScale = { 20.0f, 10.0f, 10.0f };
-	VECTOR scale = { 10.0f, 10.0f, 10.0f };
+//	VECTOR scale = { 10.0f, 10.0f, 10.0f };
+	VECTOR scale = { 100.0f, 100.0f, 100.0f };
 	//VECTOR scale = { 5.0f, 5.0f, 5.0f };
 
 	constexpr int box_num = 3;
@@ -24,10 +26,10 @@ Map::Map(int stageNum)
 			stage_ = std::make_shared<Model>(stage_file_name);
 			break;
 		case 1:
-			stage_ = std::make_shared<Model>(stage_file_name);
+			stage_ = std::make_shared<Model>(stage2_file_name);
 			break;
 		case 2:
-			stage_ = std::make_shared<Model>(stage_file_name);
+			stage_ = std::make_shared<Model>(stage3_file_name);
 			break;
 		case 3:
 			stage_ = std::make_shared<Model>(stage_file_name);
@@ -40,6 +42,7 @@ Map::Map(int stageNum)
 	//scale設定
 	{
 		stage_->setScale(scale);
+		stage_->setPos({0,-2,0});
 	}
 	
 	//ポジション設定
@@ -72,9 +75,6 @@ void Map::draw()
 {
 	SetUseLighting(false);
 
-	//ground_->draw();
-
-	
 	stage_->draw();
 
 	SetUseLighting(true);

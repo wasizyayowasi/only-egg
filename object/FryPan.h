@@ -7,7 +7,7 @@ class Model;
 class FryPan
 {
 public:
-	FryPan();
+	FryPan(int stageNum);
 	virtual ~FryPan();
 
 	/// <summary>

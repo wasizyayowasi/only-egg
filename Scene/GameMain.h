@@ -9,7 +9,10 @@ class Player;
 class Camera;
 class Model;
 class FryPan;
-class Bacon;
+class Arrow;
+class Model;
+
+class ItemBase;
 
 class GameMain : public SceneBase
 {
@@ -23,6 +26,9 @@ public:
 	void pictographUpdate(const InputState& input);
 
 private:
+
+	//ƒAƒCƒeƒ€‚Ì”
+	int itemNum = 0;
 
 	//‰æ‘œŠÖŒW
 	int pictographHandle_[8];
@@ -66,8 +72,10 @@ private:
 	std::shared_ptr<FryPan> fryPan_;
 	std::shared_ptr<Player> player_;
 	std::shared_ptr<Camera> camera_;
-	std::vector<std::shared_ptr<Bacon>> bacon_;
-	std::shared_ptr<Model> arrow_;
+	std::shared_ptr<Arrow> arrow_;
+	std::shared_ptr<Model> bane_;
+
+	std::vector<std::shared_ptr<ItemBase>> item_;
 
 	DINPUT_JOYSTATE stick_;
 };

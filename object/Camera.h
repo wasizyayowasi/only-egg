@@ -13,7 +13,6 @@ public:
 
 	void update(const InputState& input, std::shared_ptr<Player> player,bool pictographFlag, DINPUT_JOYSTATE& stick);
 	void updateCamera(VECTOR playerPos);
-//	void update(VECTOR playerPos);
 
 public:
 
@@ -25,17 +24,7 @@ public:
 	float cameraSideAngle_ = 0.0f;
 	float cameraVerAngle_ = 0.0f;
 	//ÉJÉÅÉâÇÃà íu
-	VECTOR cameraPos_ = { 0.0f,600.0f,1000.0f };
+	VECTOR cameraPos_ = { 0.0f,600.0f,1500.0f };
 
-
-
-
-
-//	float radius_ = 0.0f;
-//	float angle_ = 0.0f;
-//	float verAngle_ = 0.0f;
-//	VECTOR pos_;
-
-	
 };
 

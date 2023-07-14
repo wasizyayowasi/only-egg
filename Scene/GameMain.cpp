@@ -5,6 +5,10 @@
 #include "../object/Camera.h"
 #include "../object/FryPan.h"
 #include "../object/Bacon.h"
+#include "../object/Arrow.h"
+#include "../object/Recovery.h"
+#include "../object/Interim.h"
+#include "../object/ItemBase.h"
 
 #include "GameEnd.h"
 #include "SceneManager.h"
@@ -24,9 +28,10 @@ namespace {
 	const char* const menu_graph = "data/graph/menuGraph.png";
 	const char* const result_graph = "data/graph/result.png";
 	const char* const clock_graph = "data/graph/clock.png";
-	const char* const bacon_file_name = "data/object/bacon.mv1";
+	const char* const bacon_file_name = "data/object/bacon2.mv1";
 	const char* const gameOver_file_name = "data/graph/gameover.png";
 	const char* const arrow_file_name = "data/object/arrow.mv1";
+	const char* const bane_file_name = "data/object/bane.mv1";
 	//複製ベーコン数
 	constexpr int duplication_bacon_num = 1;
 	//パッドの右スティックの傾き
@@ -42,49 +47,26 @@ namespace {
 	constexpr int display_time = 300;
 	//数字の画像数
 	constexpr int clockGraphNum_ = 16;
-	//矢印のサイズ
-	constexpr float arrow_scale = 0.1f;
-	//矢印の初期ベクトル
-	const VECTOR start_arrow_vec = { 0,0,-1 };
-	//矢印の配置場所(スクリーン座標)
-	const VECTOR arrow_pos = { Game::kScreenWidth / 2,80,0.2f };
+	
 }
 
 GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),updateFunc_(&GameMain::fadeInUpdate),stageNum_(stageNum)
 {
-	//カメラ関連
-	{
-		/////////////// 3D関連の設定 /////////////
-		// Zバッファを使用する
-		SetUseZBuffer3D(true);
-		// Zバッファへの書き込みを行う
-		SetWriteZBuffer3D(true);
-		// ポリゴンの裏面を描画しない
-		SetUseBackCulling(true);
-
-		//////////////// カメラの設定 //////////////////
-		// カメラからどれだけ離れたところ( Near )から、 どこまで( Far )のものを描画するかを設定
-		SetCameraNearFar(5.0f, 2800.0f);
-		// カメラの位置、どこを見ているかを設定する
-		SetCameraPositionAndTarget_UpVecY(cameraPos_, VGet(0, 0, 0));
-		// カメラの視野角を設定(ラジアン)
-		SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
-	}
-	
 	{//生成
 		map_ = std::make_shared<Map>(stageNum_);
 		player_ = std::make_shared<Player>();
 		camera_ = std::make_shared<Camera>();
-		fryPan_ = std::make_shared<FryPan>();
-
-		arrow_ = std::make_shared<Model>(arrow_file_name);
-
-		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
-		for (int i = 0; i < duplication_bacon_num; i++) {
-			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
-		}
+		fryPan_ = std::make_shared<FryPan>(stageNum_);
+		arrow_ = std::make_shared<Arrow>();
+		bane_ = std::make_shared<Model>(bane_file_name);
+		item_.push_back(std::make_shared<Interim>());
+		item_.push_back(std::make_shared<Recovery>());
+		item_.push_back(std::make_shared<Bacon>(bacon_file_name));
+		item_.push_back(std::make_shared<Bacon>(item_[2]->getModelHandle()));
 	}
 	
+	itemNum = item_.size();
+
 	{//画像ロード
 		pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
 		menugraphHandle_ = LoadGraph(menu_graph);
@@ -98,8 +80,6 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
-
-	SetGlobalAmbientLight(GetColorF(0.5f, 0.5f, 0.5f, 0.0f));
 
 	ChangeLightTypePoint({ 0,500,0 }, 2000.0f, 0.0f, 0.006f, 0.0f);
 
@@ -107,36 +87,20 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 
 GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&GameMain::fadeInUpdate)
 {
-	//カメラ関連
-	{
-		/////////////// 3D関連の設定 /////////////
-		// Zバッファを使用する
-		SetUseZBuffer3D(true);
-		// Zバッファへの書き込みを行う
-		SetWriteZBuffer3D(true);
-		// ポリゴンの裏面を描画しない
-		SetUseBackCulling(true);
-
-		//////////////// カメラの設定 //////////////////
-		// カメラからどれだけ離れたところ( Near )から、 どこまで( Far )のものを描画するかを設定
-		SetCameraNearFar(5.0f, 2800.0f);
-		// カメラの位置、どこを見ているかを設定する
-		SetCameraPositionAndTarget_UpVecY(cameraPos_, VGet(0, 0, 0));
-		// カメラの視野角を設定(ラジアン)
-		SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
-	}
-
 	{//生成
 		map_ = std::make_shared<Map>(stageNum_);
 		player_ = std::make_shared<Player>();
 		camera_ = std::make_shared<Camera>();
-		fryPan_ = std::make_shared<FryPan>();
-		arrow_ = std::make_shared<Model>(arrow_file_name);
-		bacon_.push_back(std::make_shared<Bacon>(bacon_file_name));
-		for (int i = 0; i < duplication_bacon_num; i++) {
-			bacon_.push_back(std::make_shared<Bacon>(bacon_[0]->getModel()));
-		}
+		fryPan_ = std::make_shared<FryPan>(stageNum_);
+		arrow_ = std::make_shared<Arrow>();
+		bane_ = std::make_shared<Model>(bane_file_name);
+		item_.push_back(std::make_shared<Interim>());
+		item_.push_back(std::make_shared<Recovery>());
+		item_.push_back(std::make_shared<Bacon>(bacon_file_name));
+		item_.push_back(std::make_shared<Bacon>(item_[2]->getModelHandle()));
 	}
+
+	itemNum = item_.size();
 
 	{//画像ロード
 		pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
@@ -148,14 +112,10 @@ GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&Gam
 	}
 
 	player_->setMapData(map_);
-
-	MATRIX scaleMtx = MGetScale(VGet(arrow_scale, arrow_scale, arrow_scale));
-	MV1SetMatrix(arrow_->getModelHandle(), scaleMtx);
+	bane_->setScale({ 30,30,30 });
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
-
-	SetGlobalAmbientLight(GetColorF(0.5f, 0.5f, 0.5f, 0.0f));
 
 	ChangeLightTypePoint({ 0,500,0 }, 2000.0f, 0.0f, 0.006f, 0.0f);
 
@@ -165,8 +125,8 @@ GameMain::~GameMain()
 {
 	MV1TerminateCollInfo(player_->getModel(), -1);
 	MV1TerminateCollInfo(fryPan_->getModel(), -1);
-	for (auto& bacon : bacon_) {
-		MV1TerminateCollInfo(bacon->getModel(), -1);
+	for (auto& item : item_) {
+		MV1TerminateCollInfo(item->getModelHandle(), -1);
 	}
 	DeleteGraph(pictographDiskHandle_);
 	DeleteGraph(menugraphHandle_);
@@ -214,14 +174,18 @@ void GameMain::draw()
 		map_->draw();
 		player_->draw();
 		fryPan_->draw();
-
 		arrow_->draw();
-
-		for (auto& bacon : bacon_) {
-			//bacon->draw();
+		bane_->draw();
+		for (auto& item : item_) {
+			item->draw();
 		}
 	}
 	
+	for (int i = 0; i < itemNum; i++) {
+		if (item_[i]->isEnabled()) {
+			DrawString(0, i * 150 + 150, "あるよ", 0xff0000);
+		}
+	}
 
 	//絵文字円盤の描画
 	if (pictographFlag_) {
@@ -231,7 +195,7 @@ void GameMain::draw()
 
 	{//絵文字の座標、描画
 		VECTOR pictographPos;
-		pictographPos = { player_->GetPos().x - 60,player_->GetPos().y + 70,player_->GetPos().z };
+		pictographPos = { player_->getPos().x - 60,player_->getPos().y + 70,player_->getPos().z };
 
 		DrawBillboard3D(pictographPos, 0.5f, 0.5f, pictograph_Billborad_size, pictograph_angle, pictographHandle_[pictographNum_], true);
 	}
@@ -360,8 +324,8 @@ void GameMain::normalUpdate(const InputState& input)
 		if (!deadFlag_) {
 			player_->update(input);
 			camera_->update(input, player_, pictographFlag_, stick_);
-			for (auto& bacon : bacon_) {
-				bacon->update();
+			for (auto& item : item_) {
+				item->update();
 			}
 		}
 	}
@@ -373,28 +337,27 @@ void GameMain::normalUpdate(const InputState& input)
 	}
 
 	//当たり判定用変数
-	MV1_COLL_RESULT_POLY_DIM fryPanResult;
-	MV1_COLL_RESULT_POLY_DIM baconResult[duplication_bacon_num + 1];
+	MV1_COLL_RESULT_POLY_DIM itemCollisionResult[4];
 	//関数を使用し当たっているかの情報を変数に代入する
-	fryPanResult = MV1CollCheck_Capsule(fryPan_->getModel(), fryPan_->getFrameIndex(), player_->GetPos(), player_->GetlastPos(),player_->getRadius());
-	for (int i = 0; i < duplication_bacon_num + 1;i++) {
-		baconResult[i] = MV1CollCheck_Capsule(bacon_[i]->getModel(), bacon_[i]->getFrameIndex(), player_->GetPos(), player_->GetlastPos(), player_->getRadius());
+	for (int i = 0; i < itemNum;i++) {
+		itemCollisionResult[i] = MV1CollCheck_Capsule(item_[i]->getModelHandle(), item_[i]->getFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
 	}
 
-	//フライパンとプレイヤーの当たり判定
+	//フライパンの中心とプレイヤーの当たり判定
+	MV1_COLL_RESULT_POLY_DIM fryPanResult;
+	MV1RefreshCollInfo(player_->getModel(), -1);
+	fryPanResult = MV1CollCheck_Sphere(player_->getModel(), -1, fryPan_->getPos(), 60);
+
 	if (fryPanResult.HitNum > 0) {
-		DrawString(0, 30, "hit", 0xffff00);
-		if (fryPanResult.Dim->Normal.y > 0.000001) {
-			player_->stateChange();
-			player_->setPos(fryPan_->getPos());
-			updateFunc_ = &GameMain::fadeOutUpdate;
-		}
+		player_->stateChange();
+		player_->setPos(fryPan_->getPos());
+		updateFunc_ = &GameMain::fadeOutUpdate;
 	}
 
 	//ベーコンとプレイヤーの当たり判定
-	for (int i = 0; i < duplication_bacon_num + 1; i++) {
-		if (baconResult[i].HitNum > 0) {
-			bacon_[i]->setIsEnabled();
+	for (int i = 0; i < itemNum; i++) {
+		if (itemCollisionResult[i].HitNum > 0) {
+			item_[i]->setEnabled();
 		}
 	}
 	
@@ -409,9 +372,9 @@ void GameMain::normalUpdate(const InputState& input)
 	}
 
 	//いらない
-	if (input.isTriggered(InputType::pause)) {
+	/*if (input.isTriggered(InputType::pause)) {
 		updateFunc_ = &GameMain::fadeOutUpdate;
-	}
+	}*/
 
 	//TODO:時間の処理の変更
 	{
@@ -426,33 +389,15 @@ void GameMain::normalUpdate(const InputState& input)
 		}
 	}
 	
-	{//矢印の処理
-		//ゴールがどこにあるかを知らせるための矢印を作る予定
-		VECTOR temp;
-		MATRIX rotMtx;
-		//ゴールとプレイヤーのベクトルを取得
-		temp = VSub(fryPan_->getPos(), player_->GetPos());
-		//初期ベクトル(初期向き)とゴールとプレイヤーのベクトル(ゴールへ向き)を回転行列として取得する
-		rotMtx = MGetRotVec2(start_arrow_vec, temp);
-		//矢印の拡大率を行列を使って変更する
-		MATRIX scaleMtx = MGetScale(VGet(arrow_scale, arrow_scale, arrow_scale));
-		//回転行列と拡大率の行列をかける
-		MATRIX mtx = MMult(rotMtx, scaleMtx);
-		//平行移動マトリクスを上で作った拡大マトリクスと回転マトリクスにかける
-		mtx = MMult(mtx, MGetTranslate(ConvScreenPosToWorldPos(arrow_pos)));
-		//それをモデルにかける
-		MV1SetMatrix(arrow_->getModelHandle(), mtx);
-	}
-	
+	arrow_->update(fryPan_->getPos(), player_->getPos());
 
-
+	//当たり判定情報の初期化
 	MV1CollResultPolyDimTerminate(fryPanResult);
-
-	for (auto& result : baconResult) {
-		MV1CollResultPolyDimTerminate(result);
+	for (int i = 0; i < itemNum;i++) {
+		MV1CollResultPolyDimTerminate(itemCollisionResult[i]);
 	}
 
-	SetLightPosition({ player_->GetPos().x,player_->GetPos().y + 200,player_->GetPos().z });
+	SetLightPosition({ player_->getPos().x,player_->getPos().y + 200,player_->getPos().z });
 
 }
 
@@ -464,8 +409,8 @@ void GameMain::fadeOutUpdate(const InputState& input)
 {
 	float remainingHp_ = static_cast<float>(player_->getHp()) / 400.0f;
 	int invalidBaconNum = 0;
-	for (auto& bacon : bacon_) {
-		if (!bacon->isEnabled()) {
+	for (int i = 3; i < itemNum;i++) {
+		if (item_[i]->isEnabled()) {
 			invalidBaconNum++;
 		}
 	}
@@ -474,12 +419,7 @@ void GameMain::fadeOutUpdate(const InputState& input)
 		manager_.pushScene(new GameOver(manager_, gameOverHandle_));
 	}
 	else {
-		manager_.pushScene(new GameEnd(manager_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_, invalidBaconNum));
+		manager_.pushScene(new GameEnd(manager_,stageNum_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_, invalidBaconNum));
 	}
 
-	/*fadeValue_ = static_cast <int>(255 * (static_cast<float>(fadeTimer_) / static_cast<float>(fadeInterval_)));
-	if (++fadeTimer_ == fadeInterval_) {
-		manager_.changeScene(new GameEnd(manager_));
-		return;
-	}*/
 }

@@ -24,9 +24,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return -1;			// エラーが起きたら直ちに終了
 	}
 
-
 	//ダブルバッファモード
 	SetDrawScreen(DX_SCREEN_BACK);
+
+	/////////////// 3D関連の設定 /////////////
+		// Zバッファを使用する
+	SetUseZBuffer3D(true);
+	// Zバッファへの書き込みを行う
+	SetWriteZBuffer3D(true);
+	// ポリゴンの裏面を描画しない
+	SetUseBackCulling(true);
 
 	InputState input;
 	SceneManager manager;

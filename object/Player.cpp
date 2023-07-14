@@ -19,7 +19,7 @@ namespace {
 	constexpr float speed = 5.0f;
 	//半径
 	constexpr float radius = 15.0f;
-	constexpr float collition_radius = 50.0f;
+	constexpr float collition_radius = 100.0f;
 
 	// カメラの初期位置
 	constexpr VECTOR camera_target{ 0, 800, -120 };
@@ -33,8 +33,7 @@ namespace {
 	constexpr VECTOR player_vec2{ speed, 0,0 };
 	//ジャンプ中の移動量
 	constexpr VECTOR jump_vec2{ 2.0f, 0,0 };
-	//当たり判定の最大ヒット数
-	constexpr int max_hit_coll = 2048;
+	
 	//プレイヤーの高さ
 	constexpr float player_height = 30.0f;
 
@@ -68,13 +67,8 @@ Player::~Player()
 //Dxlib3Dアクション基本の当たり判定処理をそのまま持ってきたため
 //詳しくはわからない
 //要解析
-void Player::tempUpdate(VECTOR moveVector)
+void Player::checkCollisionStage(VECTOR moveVector)
 {
-	MV1_COLL_RESULT_POLY_DIM HitDim;
-	MV1_COLL_RESULT_POLY* kabe[max_hit_coll];
-	MV1_COLL_RESULT_POLY* yuka[max_hit_coll];
-	MV1_COLL_RESULT_POLY* poly;
-	HITRESULT_LINE lineRes;
 	VECTOR oldPos;
 	VECTOR nowPos;
 	int i, j, k;
@@ -134,7 +128,7 @@ void Player::tempUpdate(VECTOR moveVector)
 			for (i = 0; i < kabeNum; i++) {
 				poly = kabe[i];
 				//プレイヤーを元にしたカプセルと壁ポリゴンの判定　　当たっていなかったらcontinue
-				if (HitCheck_Capsule_Triangle(nowPos,VAdd(nowPos,VGet(0.0f,player_height,0.0f)),20.0f,poly->Position[0], poly->Position[1], poly->Position[2]) == false) continue;
+				if (HitCheck_Capsule_Triangle(nowPos,VAdd(nowPos,VGet(0.0f,player_height,0.0f)),20.0f,poly->Position[0], poly->Position[1], poly->Position[2]) == FALSE) continue;
 
 				hitFlag = true;
 
@@ -149,7 +143,7 @@ void Player::tempUpdate(VECTOR moveVector)
 				//また当たり判定？
 				for (j = 0; j < kabeNum; j++) {
 					poly = kabe[j];
-					if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == true) break;
+					if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == TRUE) break;
 				}
 
 				//当たっていなかったらフラグを折る
@@ -164,7 +158,7 @@ void Player::tempUpdate(VECTOR moveVector)
 		//一つも壁とのhit情報がなかった場合
 		for (i = 0; i < kabeNum; i++) {
 			poly = kabe[i];
-			if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == true) {
+			if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == TRUE) {
 				hitFlag = false;
 				break;
 			}
@@ -177,11 +171,11 @@ void Player::tempUpdate(VECTOR moveVector)
 		for (k = 0; k < 16; k++) {
 			for (i = 0; i < kabeNum; i++) {
 				poly = kabe[i];
-				if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == false) continue;
+				if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == FALSE) continue;
 				nowPos = VAdd(nowPos, VScale(poly->Normal, 5.0f));
 				for (int j = 0; j < kabeNum; j++) {
 					poly = kabe[j];
-					if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == true) break;
+					if (HitCheck_Capsule_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), 20.0f, poly->Position[0], poly->Position[1], poly->Position[2]) == TRUE) break;
 				}
 				if(j == kabeNum)break;
 			}
@@ -189,14 +183,15 @@ void Player::tempUpdate(VECTOR moveVector)
 		}
 	}
 
+	//床との当たり判定
 	if (yukaNum != 0) {
 	
 		if (jump_ && jumpVec_ > 0.0f) {
-			float minY;
+			float minY = 0.0f;
 			hitFlag = false;
 			for (i = 0; i < yukaNum; i++) {
 				poly = yuka[i];
-				lineRes = HitCheck_Line_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
+				lineRes = HitCheck_Line_Triangle(nowPos, VAdd(nowPos, VGet(nowPos.x, nowPos.y + player_height, nowPos.z)), poly->Position[0], poly->Position[1], poly->Position[2]);
 				if (lineRes.HitFlag == false)continue;
 				if (hitFlag == 1 && minY < lineRes.Position.y)continue;
 				hitFlag = true;
@@ -222,16 +217,15 @@ void Player::tempUpdate(VECTOR moveVector)
 				hitFlag = true;
 				maxY = lineRes.Position.y;
 			}
-			if (hitFlag == 1) {
+			if (hitFlag) {
 				nowPos.y = maxY;
 				jumpVec_ = -1.0f;
 				if (jump_) {
 					jump_ = false;
-					hp_->onDamage(damege);
+					//hp_->onDamage(damege);
 				}
 			}
 			else {
-				
 				jump_ = true;
 			}
 		}
@@ -261,7 +255,7 @@ void Player::update(const InputState& input)
 				jumpVec_ = 0.0f;
 				jump_ = false;
 				if (landingCount_ > 0) {
-					hp_->onDamage(damege);
+					//hp_->onDamage(damege);
 					landingCount_--;
 				}
 			}
@@ -311,6 +305,7 @@ void Player::update(const InputState& input)
 			landingCount_ = 1;
 		}
 	}
+
 	//死亡処理
 	if (hp_->getHp() <= 0.0f) {
 		sunnyEggFlag_ = true;
@@ -319,7 +314,8 @@ void Player::update(const InputState& input)
 	if (!(moveVec.x == 0.00000f && moveVec.y == 0.00000f && moveVec.z == 0.00000f)) {
 		moveVec = VScale(VNorm(moveVec),10.0f);
 	}
-	tempUpdate(moveVec);
+
+	checkCollisionStage(moveVec);
 }
 
 /// <summary>
@@ -334,7 +330,10 @@ void Player::draw()
 		sunnyEggModel_->draw();
 	}
 
-//	hp_->draw();
+	DrawFormatString(0, 100, 0xff0000, "%f :%f :%f", pos_.x, pos_.y, pos_.z);
+	DrawLine3D(pos_, { pos_.x,pos_.y + player_height,pos_.z }, 0xff0000);
+
+	hp_->draw();
 	DrawFormatString(200, 40, 0xffffff, "%d", hp_->getHp());
 }
 
@@ -388,7 +387,7 @@ void Player::setAngle(float angle)
 	sideAngle_ = angle;
 }
 
-void Player::setInitialPosition()
+void Player::resetInitial()
 {
 	jumpVec_ = 0.0f;
 	jump_ = true;
@@ -408,9 +407,4 @@ float Player::getRadius() const
 int Player::getHp() const
 {
 	return hp_->getHp();
-}
-
-int Player::getFrameIndex()
-{
-	return eggModel_->getColFrameIndex();
 }

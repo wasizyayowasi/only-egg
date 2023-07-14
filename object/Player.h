@@ -7,6 +7,9 @@ class Model;
 class InputState;
 class Map;
 
+//当たり判定の最大ヒット数
+constexpr int max_hit_coll = 2048;
+
 class Player
 {
 public:
@@ -14,7 +17,7 @@ public:
 	Player();
 	virtual ~Player();
 
-	void tempUpdate(VECTOR moveVector);
+	void checkCollisionStage(VECTOR moveVector);
 
 	void update(const InputState& input);
 	void draw();
@@ -23,23 +26,20 @@ public:
 
 	//FIXME:無駄な関数を減らす
 
-	// ショットの中心位置取得
 	void setPos(VECTOR pos);
-	VECTOR GetPos() const { return pos_; };
-	VECTOR GetlastPos() const { return lastPos_; };
+	VECTOR getPos() const { return pos_; };
+	VECTOR getlastPos() const { return lastPos_; };
 
 	int getModel();
 
 	void stateChange();
 	bool getState();
 	void setAngle(float angle);
-	void setInitialPosition();
+	void resetInitial();
 
 	float getRadius()const;
 
 	int getHp()const;
-
-	int getFrameIndex();
 
 private:
 
@@ -59,6 +59,12 @@ private:
 
 	float verticalRotation_ = 0.0f;
 	float sideRotation_ = 0.0f;
+
+	MV1_COLL_RESULT_POLY_DIM HitDim;
+	MV1_COLL_RESULT_POLY* kabe[max_hit_coll];
+	MV1_COLL_RESULT_POLY* yuka[max_hit_coll];
+	MV1_COLL_RESULT_POLY* poly;
+	HITRESULT_LINE lineRes;
 
 	//１フレーム前の位置
 	VECTOR lastPos_;

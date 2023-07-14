@@ -6,11 +6,17 @@
 #include "../util/InputState.h"
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <stdio.h>
+#include <sstream>
+
 #include "DxLib.h"
 
 StageSelect::StageSelect(SceneManager& manager):SceneBase(manager),updateFunc_(&StageSelect::fadeInUpdate)
 {
-
+	externalFileLoading();
 }
 
 StageSelect::~StageSelect()
@@ -47,6 +53,24 @@ void StageSelect::draw()
 	DrawBox(0, 0, Game::kScreenWidth, Game::kScreenHeight, fadeColor_, true);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
+}
+
+void StageSelect::externalFileLoading()
+{
+	std::ifstream reading_file;
+	std::string filename = "mapInformation.txt";
+	reading_file.open(filename, std::ios::in);
+
+	std::string reading_line_buffer;
+	while (std::getline(reading_file, reading_line_buffer)) {
+		std::cout << reading_line_buffer << std::endl;
+
+		std::istringstream ss;
+		ss = std::istringstream(reading_line_buffer);
+
+	}
+
+	
 }
 
 /// <summary>

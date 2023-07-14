@@ -10,6 +10,8 @@ public:
 	void update(const InputState& input);
 	void draw();
 
+	void externalFileLoading();
+
 private:
 
 	void fadeInUpdate(const InputState& input);

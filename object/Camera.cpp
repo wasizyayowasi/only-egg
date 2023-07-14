@@ -59,7 +59,7 @@ void Camera::update(const InputState& input, std::shared_ptr<Player> player, boo
 	//プレイヤーに左右に動かした分のアングルを送る
 	player->setAngle(sideAngle_);
 	//カメラの座標更新
-	updateCamera(player->GetPos());
+	updateCamera(player->getPos());
 
 }
 
@@ -93,7 +93,7 @@ void Camera::updateCamera(VECTOR playerPos)
 	VECTOR cameraPos = VTransform(cameraPos_, cameraMtx);
 
 	// カメラからどれだけ離れたところ( Near )から、 どこまで( Far )のものを描画するかを設定
-	SetCameraNearFar(5.0f, 2800.0f);
+	SetCameraNearFar(5.0f, 18000.0f);
 
 	// カメラの視野角を設定(ラジアン)
 	SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);
