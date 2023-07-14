@@ -8,7 +8,7 @@
 
 #include "DxLib.h"
 
-GameOver::GameOver(SceneManager& manager, int handle) : SceneBase(manager), handle_(handle)
+GameOver::GameOver(SceneManager& manager, int stageNum, int handle) : SceneBase(manager),stageNum_(stageNum), handle_(handle)
 {
 
 }
@@ -32,7 +32,7 @@ void GameOver::update(const InputState& input)
 	if (input.isTriggered(InputType::next)) {
 		switch (cursorNum_) {
 		case 0:
-			manager_.changeScene(new GameMain(manager_));
+			manager_.changeScene(new GameMain(manager_,stageNum_));
 			break;
 		case 1:
 			manager_.changeScene(new StageSelect(manager_));

@@ -47,6 +47,8 @@ namespace {
 	constexpr int display_time = 300;
 	//数字の画像数
 	constexpr int clockGraphNum_ = 16;
+	//ばねの数
+	constexpr int bane_num = 10;
 	
 }
 
@@ -58,7 +60,10 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		camera_ = std::make_shared<Camera>();
 		fryPan_ = std::make_shared<FryPan>(stageNum_);
 		arrow_ = std::make_shared<Arrow>();
-		bane_ = std::make_shared<Model>(bane_file_name);
+		bane_.push_back(std::make_shared<Model>(bane_file_name));
+		for (int i = 0; i < bane_num; i++) {
+			bane_.push_back(std::make_shared<Model>(bane_[0]->getModelHandle()));
+		}
 		item_.push_back(std::make_shared<Interim>());
 		item_.push_back(std::make_shared<Recovery>());
 		item_.push_back(std::make_shared<Bacon>(bacon_file_name));
@@ -77,42 +82,21 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 	}
 
 	player_->setMapData(map_);
-
-	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
-	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
-
-	ChangeLightTypePoint({ 0,500,0 }, 2000.0f, 0.0f, 0.006f, 0.0f);
-
-}
-
-GameMain::GameMain(SceneManager& manager) : SceneBase(manager), updateFunc_(&GameMain::fadeInUpdate)
-{
-	{//生成
-		map_ = std::make_shared<Map>(stageNum_);
-		player_ = std::make_shared<Player>();
-		camera_ = std::make_shared<Camera>();
-		fryPan_ = std::make_shared<FryPan>(stageNum_);
-		arrow_ = std::make_shared<Arrow>();
-		bane_ = std::make_shared<Model>(bane_file_name);
-		item_.push_back(std::make_shared<Interim>());
-		item_.push_back(std::make_shared<Recovery>());
-		item_.push_back(std::make_shared<Bacon>(bacon_file_name));
-		item_.push_back(std::make_shared<Bacon>(item_[2]->getModelHandle()));
+	for (auto& bane : bane_) {
+		bane->setScale({ 30,30,30 });
 	}
 
-	itemNum = item_.size();
-
-	{//画像ロード
-		pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
-		menugraphHandle_ = LoadGraph(menu_graph);
-		resultgraphHandle_ = LoadGraph(result_graph);
-		gameOverHandle_ = LoadGraph(gameOver_file_name);
-		LoadDivGraph(pictograph_file_name, 8, 8, 1, pictograph_size, pictograph_size, pictographHandle_);
-		LoadDivGraph(clock_graph, clockGraphNum_, clockGraphNum_, 1, pictograph_Billborad_size, pictograph_Billborad_size, clockgraphHandle_);
-	}
-
-	player_->setMapData(map_);
-	bane_->setScale({ 30,30,30 });
+	bane_[0]->setPos({ 990,1600,-600 });
+	bane_[1]->setPos({ 1474,2200,-1055 });
+	bane_[2]->setPos({ 1750, 2900 ,-1545 });
+	bane_[3]->setPos({ -355 ,1000 ,-2770 });
+	bane_[4]->setPos({ -510,1600,-3400 });
+	bane_[5]->setPos({ -820,650,-6525 });
+	bane_[6]->setPos({ -950,1000,-7390 });
+	bane_[7]->setPos({ -1580,1700,-7350 });
+	bane_[8]->setPos({ -2270 ,1200,-7340 });
+	bane_[9]->setPos({ -2800,1900,-7340 });
+	bane_[10]->setPos({ 348,0,810 });
 
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
@@ -175,18 +159,17 @@ void GameMain::draw()
 		player_->draw();
 		fryPan_->draw();
 		arrow_->draw();
-		bane_->draw();
+		if (stageNum_ == 2) {
+			for (auto& bane : bane_) {
+				bane->draw();
+			}
+		}
+	
 		for (auto& item : item_) {
 			item->draw();
 		}
 	}
 	
-	for (int i = 0; i < itemNum; i++) {
-		if (item_[i]->isEnabled()) {
-			DrawString(0, i * 150 + 150, "あるよ", 0xff0000);
-		}
-	}
-
 	//絵文字円盤の描画
 	if (pictographFlag_) {
 		DrawRotaGraphF(Game::kScreenWidth / 2, Game::kScreenHeight / 2, 3.0f, 0.0f, pictographDiskHandle_, true);
@@ -336,12 +319,20 @@ void GameMain::normalUpdate(const InputState& input)
 		deadFlag_ = true;
 	}
 
+	int baneNum = bane_num + 1;
+
 	//当たり判定用変数
 	MV1_COLL_RESULT_POLY_DIM itemCollisionResult[4];
+	MV1_COLL_RESULT_POLY_DIM baneCollisionResult[bane_num + 1];
 	//関数を使用し当たっているかの情報を変数に代入する
 	for (int i = 0; i < itemNum;i++) {
 		itemCollisionResult[i] = MV1CollCheck_Capsule(item_[i]->getModelHandle(), item_[i]->getFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
 	}
+
+	for (int i = 0; i < baneNum;i++) {
+		baneCollisionResult[i] = MV1CollCheck_Capsule(bane_[i]->getModelHandle(), bane_[i]->getColFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
+	}
+	
 
 	//フライパンの中心とプレイヤーの当たり判定
 	MV1_COLL_RESULT_POLY_DIM fryPanResult;
@@ -360,6 +351,13 @@ void GameMain::normalUpdate(const InputState& input)
 			item_[i]->setEnabled();
 		}
 	}
+
+	for (int i = 0; i < baneNum; i++) {
+		if (baneCollisionResult[i].HitNum > 0) {
+			player_->FlyAway();
+		}
+	}
+
 	
 	//メイン処理を終了させる
 	if (deadFlag_) {
@@ -368,7 +366,7 @@ void GameMain::normalUpdate(const InputState& input)
 
 	//ポーズ画面に移動
 	if (input.isTriggered(InputType::pause)) {
-		manager_.pushScene(new PauseScene(manager_,player_, menugraphHandle_,gameOverHandle_));
+		manager_.pushScene(new PauseScene(manager_, stageNum_, player_, menugraphHandle_,gameOverHandle_));
 	}
 
 	//いらない
@@ -393,6 +391,9 @@ void GameMain::normalUpdate(const InputState& input)
 
 	//当たり判定情報の初期化
 	MV1CollResultPolyDimTerminate(fryPanResult);
+	for (int i = 0; i < baneNum; i++) {
+		MV1CollResultPolyDimTerminate(baneCollisionResult[i]);
+	}
 	for (int i = 0; i < itemNum;i++) {
 		MV1CollResultPolyDimTerminate(itemCollisionResult[i]);
 	}
@@ -416,7 +417,7 @@ void GameMain::fadeOutUpdate(const InputState& input)
 	}
 
 	if (deadFlag_) {
-		manager_.pushScene(new GameOver(manager_, gameOverHandle_));
+		manager_.pushScene(new GameOver(manager_, stageNum_,gameOverHandle_));
 	}
 	else {
 		manager_.pushScene(new GameEnd(manager_,stageNum_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_, invalidBaconNum));

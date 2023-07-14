@@ -6,6 +6,7 @@ namespace {
 	constexpr float radius = 60.0f;
 	const VECTOR stage1_start_pos = { 5990.0f,972.0f,762.0f };
 	const VECTOR stage2_start_pos = { 410.0f,3200.0f,-3547.0f };
+	const VECTOR stage3_start_pos = { -3780,1450,-7030 };
 }
 
 FryPan::FryPan(int stageNum)
@@ -18,7 +19,7 @@ FryPan::FryPan(int stageNum)
 		pos_ = stage2_start_pos;
 		break;
 	case 2:
-		pos_ = stage1_start_pos;
+		pos_ = stage3_start_pos;
 		break;
 	case 3:
 		pos_ = stage1_start_pos;

@@ -14,7 +14,7 @@
 
 #include<algorithm>
 
-PauseScene::PauseScene(SceneManager& manager, std::shared_ptr<Player> player,int handle, int gameoverHandle):SceneBase(manager),player_(player),handle_(handle), gameoverHandle_(gameoverHandle)
+PauseScene::PauseScene(SceneManager& manager, int stageNum, std::shared_ptr<Player> player,int handle, int gameoverHandle):SceneBase(manager),stageNum_(stageNum), player_(player),handle_(handle), gameoverHandle_(gameoverHandle)
 {
 	
 }
@@ -52,7 +52,7 @@ void PauseScene::update(const InputState& input)
 			manager_.popScene();
 			break; 
 		case 2:
-			manager_.pushScene(new GameOver(manager_, gameoverHandle_));
+			manager_.pushScene(new GameOver(manager_,stageNum_, gameoverHandle_));
 			break;
 		case 3:
 			break;

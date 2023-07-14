@@ -18,7 +18,6 @@ class GameMain : public SceneBase
 {
 public:
 	GameMain(SceneManager& manager,int stageNum);
-	GameMain(SceneManager& manager);
 	virtual ~GameMain();
 
 	void update(const InputState& input);
@@ -73,7 +72,7 @@ private:
 	std::shared_ptr<Player> player_;
 	std::shared_ptr<Camera> camera_;
 	std::shared_ptr<Arrow> arrow_;
-	std::shared_ptr<Model> bane_;
+	std::vector<std::shared_ptr<Model>> bane_;
 
 	std::vector<std::shared_ptr<ItemBase>> item_;
 

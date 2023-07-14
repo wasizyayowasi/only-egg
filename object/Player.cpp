@@ -222,7 +222,7 @@ void Player::checkCollisionStage(VECTOR moveVector)
 				jumpVec_ = -1.0f;
 				if (jump_) {
 					jump_ = false;
-					//hp_->onDamage(damege);
+					hp_->onDamage(damege);
 				}
 			}
 			else {
@@ -255,7 +255,7 @@ void Player::update(const InputState& input)
 				jumpVec_ = 0.0f;
 				jump_ = false;
 				if (landingCount_ > 0) {
-					//hp_->onDamage(damege);
+					hp_->onDamage(damege);
 					landingCount_--;
 				}
 			}
@@ -407,4 +407,10 @@ float Player::getRadius() const
 int Player::getHp() const
 {
 	return hp_->getHp();
+}
+
+void Player::FlyAway()
+{
+	jumpVec_ = jump_power * 1.2f;
+	jump_ = true;
 }

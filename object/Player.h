@@ -41,6 +41,8 @@ public:
 
 	int getHp()const;
 
+	void FlyAway();
+
 private:
 
 	int landingCount_ = 0;

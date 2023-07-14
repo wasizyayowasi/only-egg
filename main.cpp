@@ -37,7 +37,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	InputState input;
 	SceneManager manager;
-	manager.changeScene(new GameMain(manager));
+	manager.changeScene(new StageSelect(manager));
 
 	while (ProcessMessage() == 0) {
 
