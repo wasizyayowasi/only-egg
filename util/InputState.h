@@ -17,6 +17,7 @@ enum class InputType
 	tempDown,			///下
 	tempLeft,			///左
 	tempRight,			///右
+	checkpoint,
 	space,
 	rightTrigger,
 	max,			///最大入力インデックス

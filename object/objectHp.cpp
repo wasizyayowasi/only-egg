@@ -27,3 +27,8 @@ void objectHp::onDamage(int hp)
 	hp_ -= hp;
 	hp_ = (std::max)(hp_, 0);
 }
+
+void objectHp::cure(int recoveryValue)
+{
+	hp_ = (std::min)(hp_ + recoveryValue,maxHp_);
+}

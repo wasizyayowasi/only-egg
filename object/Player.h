@@ -17,7 +17,7 @@ public:
 	Player();
 	virtual ~Player();
 
-	void checkCollisionStage(VECTOR moveVector);
+	void checkCollitionStage(VECTOR moveVector);
 
 	void update(const InputState& input);
 	void draw();
@@ -43,7 +43,15 @@ public:
 
 	void FlyAway();
 
+	void cure();
+
+	void checkpointTeleport();
+
+	void chengeCheckpoint(VECTOR pos);
+
 private:
+	//チェックポイント座標
+	VECTOR checkpointPos_;
 
 	int landingCount_ = 0;
 
@@ -62,6 +70,7 @@ private:
 	float verticalRotation_ = 0.0f;
 	float sideRotation_ = 0.0f;
 
+	//ステージとの当たり判定用メソッド
 	MV1_COLL_RESULT_POLY_DIM HitDim;
 	MV1_COLL_RESULT_POLY* kabe[max_hit_coll];
 	MV1_COLL_RESULT_POLY* yuka[max_hit_coll];

@@ -1,18 +1,18 @@
 #include "ItemBase.h"
 #include "../util/Model.h"
 
-ItemBase::ItemBase(const char* const fileName, VECTOR pos, float scale)
+ItemBase::ItemBase(const char* const fileName, VECTOR pos, float scale) : pos_(pos)
 {
 	model_ = std::make_shared<Model>(fileName);
-	model_->setPos(pos);
+	model_->setPos(pos_);
 	model_->setRot(rotation_);
 	model_->setScale({ scale,scale ,scale });
 }
 
-ItemBase::ItemBase(int handle, VECTOR pos, float scale)
+ItemBase::ItemBase(int handle, VECTOR pos, float scale) : pos_(pos)
 {
 	model_ = std::make_shared<Model>(handle);
-	model_->setPos(pos);
+	model_->setPos(pos_);
 	model_->setRot(rotation_);
 	model_->setScale({ scale,scale ,scale });
 }
@@ -52,4 +52,10 @@ bool ItemBase::isEnabled()
 void ItemBase::setEnabled()
 {
 	model_->setEnable();
+}
+
+void ItemBase::setPos(VECTOR pos)
+{
+	pos_ = pos;
+	model_->setPos(pos);
 }

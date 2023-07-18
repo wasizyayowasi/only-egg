@@ -4,6 +4,7 @@
 #include "StageSelect.h"
 #include "GameOver.h"
 #include "GameMain.h"
+#include "SoundSettingScene.h"
 
 #include "DxLib.h"
 
@@ -55,6 +56,7 @@ void PauseScene::update(const InputState& input)
 			manager_.pushScene(new GameOver(manager_,stageNum_, gameoverHandle_));
 			break;
 		case 3:
+			manager_.pushScene(new SoundSettingScene(manager_));
 			break;
 		case 4:
 			manager_.changeScene(new SceneTitle(manager_));

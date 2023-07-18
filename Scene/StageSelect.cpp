@@ -40,9 +40,9 @@ void StageSelect::draw()
 {
 	DrawString(0, 0, "stageSelect", 0xffffff);
 
-	DrawBox(75 + selectNum * 300, Game::kScreenHeight / 2 - 125, 125 + selectNum * 300 + 200, Game::kScreenHeight / 2 + 125, 0xffffff, true);
+	DrawBox(385 + selectNum * 300, Game::kScreenHeight / 2 - 125, 435 + selectNum * 300 + 200, Game::kScreenHeight / 2 + 125, 0xffffff, true);
 
-	int x = 100;
+	int x = Game::kScreenWidth / 2 - 550;
 	for (int i = 0; i < 4; i++) {
 		DrawBox(x, Game::kScreenHeight / 2 - 100, x + 200, Game::kScreenHeight / 2 + 100, 0x448844, true);
 		x += 300;

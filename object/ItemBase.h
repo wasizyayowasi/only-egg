@@ -22,7 +22,12 @@ public:
 	bool isEnabled();
 	void setEnabled();
 
+	VECTOR getPos() { return pos_; }
+	void setPos(VECTOR pos);
+
 private:
+
+	VECTOR pos_;
 
 	VECTOR rotation_ = { 0,0,0 };
 

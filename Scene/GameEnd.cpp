@@ -5,6 +5,7 @@
 
 #include "../util/game.h"
 #include "../util/InputState.h"
+#include "../util/soundManager.h"
 #include "DxLib.h"
 
 #include <algorithm>
@@ -30,12 +31,10 @@ GameEnd::GameEnd(SceneManager& manager, int stageNum, int resultHandle, int figu
 	}
 
 	externalFileExport();
-
 }
 
 GameEnd::~GameEnd()
 {
-	
 }
 
 /// <summary>
@@ -62,6 +61,7 @@ void GameEnd::update(const InputState& input)
 			manager_.changeScene(new StageSelect(manager_));
 			break;
 		}
+		SoundManager::getInstance().stopBGMAndSE("bake");
 	}
 
 }
@@ -130,8 +130,8 @@ void GameEnd::externalFileExport()
 	writing_file.open(filename, std::ios::out);
 
 	char tempStageNum[20];
-	char tempMinute[20];
-	char tempSecond[20];
+//	char tempMinute[20];
+//	char tempSecond[20];
 	char tempStar[20];
 	int rewardNum = 0;
 
@@ -161,16 +161,17 @@ void GameEnd::externalFileExport()
 	}
 
 	sprintf_s(tempStageNum, "%d", stageNum_);
-	sprintf_s(tempMinute, "%d", minuteTime_);
-	sprintf_s(tempSecond, "%d", secondTime_);
+//	sprintf_s(tempMinute, "%d", minuteTime_);
+//	sprintf_s(tempSecond, "%d", secondTime_);
 	sprintf_s(tempStar, "%d", rewardNum);
 
 	std::string stage = tempStageNum;
-	std::string minute = tempMinute;
-	std::string second = tempSecond;
+//	std::string minute = tempMinute;
+//	std::string second = tempSecond;
 	std::string star = tempStar;
 
-	writing_file << stage << std::endl << minute  << std::endl << second << std::endl << star << std::endl;
+//	writing_file << stage << std::endl << minute  << std::endl << second << std::endl << star << std::endl;
+	writing_file << stage << std::endl << star << std::endl;
 
 	writing_file.close();
 }

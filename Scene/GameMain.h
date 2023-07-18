@@ -22,7 +22,12 @@ public:
 
 	void update(const InputState& input);
 	void draw();
+
 	void pictographUpdate(const InputState& input);
+
+	void itemSetPosition();
+
+	void checkCollision();
 
 private:
 

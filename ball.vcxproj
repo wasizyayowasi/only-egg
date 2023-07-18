@@ -163,6 +163,7 @@
     <ClCompile Include="object\objectHp.cpp" />
     <ClCompile Include="object\Player.cpp" />
     <ClCompile Include="Scene\PauseScene.cpp" />
+    <ClCompile Include="Scene\SoundSettingScene.cpp" />
     <ClCompile Include="Scene\StageSelect.cpp" />
     <ClCompile Include="util\Model.cpp" />
     <ClCompile Include="Scene\GameEnd.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Scene\SceneBase.cpp" />
     <ClCompile Include="Scene\SceneManager.cpp" />
     <ClCompile Include="Scene\SceneTitle.cpp" />
+    <ClCompile Include="util\SoundManager.cpp" />
     <ClCompile Include="util\Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +189,7 @@
     <ClInclude Include="object\objectHp.h" />
     <ClInclude Include="object\Player.h" />
     <ClInclude Include="Scene\PauseScene.h" />
+    <ClInclude Include="Scene\SoundSettingScene.h" />
     <ClInclude Include="Scene\StageSelect.h" />
     <ClInclude Include="util\Model.h" />
     <ClInclude Include="util\game.h" />
@@ -196,6 +199,7 @@
     <ClInclude Include="Scene\SceneBase.h" />
     <ClInclude Include="Scene\SceneManager.h" />
     <ClInclude Include="Scene\SceneTitle.h" />
+    <ClInclude Include="util\SoundManager.h" />
     <ClInclude Include="util\Vec2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

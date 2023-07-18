@@ -7,7 +7,7 @@ namespace {
 	//Šg‘å—¦
 	constexpr float interim_scale = 28.0f;
 
-	const VECTOR start_pos = { 500,0,0 };
+	const VECTOR start_pos = { 2820,2415,795 };
 }
 
 Interim::Interim():ItemBase(interim_file_name, start_pos,interim_scale)

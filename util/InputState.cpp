@@ -42,6 +42,9 @@ InputState::InputState()
 									  
 	defaultMapTable[InputType::rightTrigger] = { {InputCategory::pad,PAD_INPUT_6} };
 
+	defaultMapTable[InputType::checkpoint] = {  {InputCategory::keybd,KEY_INPUT_Z},
+												{InputCategory::pad,PAD_INPUT_3} };
+
 	defaultMapTable[InputType::space] = {		{InputCategory::keybd,KEY_INPUT_SPACE},
 												{InputCategory::pad,PAD_INPUT_2} };
 

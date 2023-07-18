@@ -40,7 +40,7 @@ namespace {
 	//初期位置
 	constexpr VECTOR start_pos = { 0,30,200 };
 	//ダメージ
-	constexpr int damege = 20;
+	constexpr int damege = 15;
 }
 
 Player::Player()
@@ -57,6 +57,7 @@ Player::Player()
 
 	cameraPos_ = { 0.0f,600.0f,1000.0f };
 
+	checkpointPos_ = start_pos;
 }
 
 Player::~Player()
@@ -67,7 +68,7 @@ Player::~Player()
 //Dxlib3Dアクション基本の当たり判定処理をそのまま持ってきたため
 //詳しくはわからない
 //要解析
-void Player::checkCollisionStage(VECTOR moveVector)
+void Player::checkCollitionStage(VECTOR moveVector)
 {
 	VECTOR oldPos;
 	VECTOR nowPos;
@@ -207,10 +208,10 @@ void Player::checkCollisionStage(VECTOR moveVector)
 			for (i = 0; i < yukaNum; i++) {
 				poly = yuka[i];
 				if (jump_) {
-					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), VAdd(nowPos, VGet(0.0f, -1.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
+					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0, player_height, 0)), VAdd(nowPos, VGet(0.0f, -1.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
 				}
 				else {
-					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), VAdd(nowPos, VGet(0.0f, -40.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
+					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0, player_height, 0)), VAdd(nowPos, VGet(0.0f, -30.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
 				}
 				if (lineRes.HitFlag == false) continue;
 				if (hitFlag && maxY > lineRes.Position.y)continue;
@@ -298,13 +299,17 @@ void Player::update(const InputState& input)
 
 	//ジャンプ開始処理
 	if (!jump_) {
-		DrawFormatString(0, 45, 0xffffff, "%d", jump_);
 		if (input.isPressed(InputType::space)) {
 			jumpVec_ = jump_power;
 			jump_ = true;
 			landingCount_ = 1;
 		}
 	}
+
+	if (input.isTriggered(InputType::checkpoint)) {
+		checkpointTeleport();
+	}
+
 
 	//死亡処理
 	if (hp_->getHp() <= 0.0f) {
@@ -315,7 +320,7 @@ void Player::update(const InputState& input)
 		moveVec = VScale(VNorm(moveVec),10.0f);
 	}
 
-	checkCollisionStage(moveVec);
+	checkCollitionStage(moveVec);
 }
 
 /// <summary>
@@ -331,6 +336,10 @@ void Player::draw()
 	}
 
 	DrawFormatString(0, 100, 0xff0000, "%f :%f :%f", pos_.x, pos_.y, pos_.z);
+	DrawFormatString(0, 116, 0xff0000, "%f :%f :%f", checkpointPos_.x, checkpointPos_.y, checkpointPos_.z);
+	DrawFormatString(0, 132, 0xff0000, "%f",jumpVec_);
+	//DrawSphere3D(pos_, 100, 32, 0xffffff, 0xffffff, true);
+	DrawFormatString(0, 148, 0xff0000, "%d", HitDim.HitNum);
 	DrawLine3D(pos_, { pos_.x,pos_.y + player_height,pos_.z }, 0xff0000);
 
 	hp_->draw();
@@ -413,4 +422,20 @@ void Player::FlyAway()
 {
 	jumpVec_ = jump_power * 1.2f;
 	jump_ = true;
+}
+
+void Player::cure()
+{
+	hp_->cure(200);
+}
+
+void Player::checkpointTeleport()
+{
+	pos_ = checkpointPos_;
+	hp_->onDamage(30);
+}
+
+void Player::chengeCheckpoint(VECTOR pos)
+{
+	checkpointPos_ = pos;
 }

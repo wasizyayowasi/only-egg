@@ -25,6 +25,8 @@ public:
 	/// <param name="hp">ƒ_ƒ[ƒW</param>
 	void onDamage(int hp);
 
+	void cure(int recoveryValue);
+
 private:
 
 	int maxHp_ = 0;

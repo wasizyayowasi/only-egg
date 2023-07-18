@@ -6,7 +6,7 @@ namespace {
 	const char* const egg_name = "data/mapObject/cube.mv1";
 	const char* const stage_file_name = "data/mapObject/Yroom.mv1";
 	const char* const stage3_file_name = "data/mapObject/Nroom.mv1";
-	const char* const stage2_file_name = "data/mapObject/kago.mv1";
+	const char* const stage2_file_name = "data/mapObject/Mroom.mv1";
 
 	//ÉTÉCÉY
 	VECTOR groundScale = { 20.0f, 10.0f, 10.0f };

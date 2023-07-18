@@ -15,6 +15,7 @@
 #include "PauseScene.h"
 #include "GameOver.h"
 
+#include "../util/SoundManager.h"
 #include "../util/Model.h"
 #include "../util/game.h"
 #include "../util/InputState.h"
@@ -28,7 +29,7 @@ namespace {
 	const char* const menu_graph = "data/graph/menuGraph.png";
 	const char* const result_graph = "data/graph/result.png";
 	const char* const clock_graph = "data/graph/clock.png";
-	const char* const bacon_file_name = "data/object/bacon2.mv1";
+	const char* const bacon_file_name = "data/object/bacon.mv1";
 	const char* const gameOver_file_name = "data/graph/gameover.png";
 	const char* const arrow_file_name = "data/object/arrow.mv1";
 	const char* const bane_file_name = "data/object/bane.mv1";
@@ -60,17 +61,22 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		camera_ = std::make_shared<Camera>();
 		fryPan_ = std::make_shared<FryPan>(stageNum_);
 		arrow_ = std::make_shared<Arrow>();
-		bane_.push_back(std::make_shared<Model>(bane_file_name));
-		for (int i = 0; i < bane_num; i++) {
-			bane_.push_back(std::make_shared<Model>(bane_[0]->getModelHandle()));
-		}
 		item_.push_back(std::make_shared<Interim>());
 		item_.push_back(std::make_shared<Recovery>());
 		item_.push_back(std::make_shared<Bacon>(bacon_file_name));
 		item_.push_back(std::make_shared<Bacon>(item_[2]->getModelHandle()));
+		if (stageNum_ == 2) {
+			bane_.push_back(std::make_shared<Model>(bane_file_name));
+			for (int i = 0; i < bane_num; i++) {
+				bane_.push_back(std::make_shared<Model>(bane_[0]->getModelHandle()));
+			}
+		}
 	}
 	
 	itemNum = item_.size();
+
+	itemSetPosition();
+	
 
 	{//画像ロード
 		pictographDiskHandle_ = LoadGraph(pictographDisk_file_name);
@@ -86,22 +92,13 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		bane->setScale({ 30,30,30 });
 	}
 
-	bane_[0]->setPos({ 990,1600,-600 });
-	bane_[1]->setPos({ 1474,2200,-1055 });
-	bane_[2]->setPos({ 1750, 2900 ,-1545 });
-	bane_[3]->setPos({ -355 ,1000 ,-2770 });
-	bane_[4]->setPos({ -510,1600,-3400 });
-	bane_[5]->setPos({ -820,650,-6525 });
-	bane_[6]->setPos({ -950,1000,-7390 });
-	bane_[7]->setPos({ -1580,1700,-7350 });
-	bane_[8]->setPos({ -2270 ,1200,-7340 });
-	bane_[9]->setPos({ -2800,1900,-7340 });
-	bane_[10]->setPos({ 348,0,810 });
-
 	MV1SetupCollInfo(player_->getModel(), -1, 8, 8, 8);
 	MV1SetupCollInfo(fryPan_->getModel(), -1, 8, 8, 8);
 
 	ChangeLightTypePoint({ 0,500,0 }, 2000.0f, 0.0f, 0.006f, 0.0f);
+
+	SoundManager::getInstance().setBGMRate(0.0f);
+	SoundManager::getInstance().playMusic("data/sound/BGM/bgm1.mp3");
 
 }
 
@@ -267,12 +264,161 @@ void GameMain::pictographUpdate(const InputState& input)
 	}
 }
 
+void GameMain::itemSetPosition()
+{
+
+	if (stageNum_ == 2) {
+		bane_[0]->setPos({ 990,1600,-600 });
+		bane_[1]->setPos({ 1474,2200,-1055 });
+		bane_[2]->setPos({ 1750, 2900 ,-1545 });
+		bane_[3]->setPos({ -355 ,1000 ,-2770 });
+		bane_[4]->setPos({ -510,1600,-3400 });
+		bane_[5]->setPos({ -820,650,-6525 });
+		bane_[6]->setPos({ -950,1000,-7390 });
+		bane_[7]->setPos({ -1580,1700,-7350 });
+		bane_[8]->setPos({ -2270 ,1200,-7340 });
+		bane_[9]->setPos({ -2800,1900,-7340 });
+		bane_[10]->setPos({ 348,0,810 });
+	}
+
+	for (int i = 0; i < itemNum; i++) {
+		if (i == 0) {
+			switch (stageNum_) {
+			case 0:
+				item_[i]->setPos({ 2820,2415,795 });
+				break;
+			case 1:
+				item_[i]->setPos({ -690,2755,970 });
+				break;
+			case 2:
+				item_[i]->setPos({ 1405,2985,-3000 });
+				break;
+			}
+		}
+
+		if (i == 1) {
+			switch (stageNum_) {
+			case 0:
+				item_[i]->setPos({ 3290,2415,795 });
+				break;
+			case 1:
+				item_[i]->setPos({ -5,1680,-1170 });
+				break;
+			case 2:
+				item_[i]->setPos({ -720,1945,-5460 });
+				break;
+			}
+		}
+
+		if (i == 2) {
+			switch (stageNum_) {
+			case 0:
+				item_[i]->setPos({ 2155,1065,945 });
+				break;
+			case 1:
+				item_[i]->setPos({ 390,1300,-3460 });
+				break;
+			case 2:
+				item_[i]->setPos({ -4000,1450,-5115 });
+				break;
+			}
+		}
+
+		if (i == 3) {
+			switch (stageNum_) {
+			case 0:
+				item_[i]->setPos({ 7205,1200,-2095 });
+				break;
+			case 1:
+				item_[i]->setPos({ -865,2940,2445 });
+				break;
+			case 2:
+				item_[i]->setPos({ 1450,2245,-2725 });
+				break;
+			}
+		}
+	}
+}
+
+void GameMain::checkCollision()
+{
+	int baneNum = bane_num + 1;
+
+	//当たり判定用変数
+	MV1_COLL_RESULT_POLY_DIM itemCollisionResult[4];
+	MV1_COLL_RESULT_POLY_DIM baneCollisionResult[bane_num + 1];
+	//関数を使用し当たっているかの情報を変数に代入する
+	for (int i = 0; i < itemNum; i++) {
+		if (item_[i]->isEnabled()) {
+			itemCollisionResult[i] = MV1CollCheck_Capsule(item_[i]->getModelHandle(), item_[i]->getFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
+		}
+	}
+
+	if (stageNum_ == 2) {
+		for (int i = 0; i < baneNum; i++) {
+			baneCollisionResult[i] = MV1CollCheck_Capsule(bane_[i]->getModelHandle(), bane_[i]->getColFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
+		}
+	}
+
+
+	//フライパンの中心とプレイヤーの当たり判定
+	MV1_COLL_RESULT_POLY_DIM fryPanResult;
+	MV1RefreshCollInfo(player_->getModel(), -1);
+	fryPanResult = MV1CollCheck_Sphere(player_->getModel(), -1, fryPan_->getPos(), 60);
+
+	if (fryPanResult.HitNum > 0) {
+		player_->stateChange();
+		player_->setPos(fryPan_->getPos());
+		SoundManager::getInstance().play("bake");
+		updateFunc_ = &GameMain::fadeOutUpdate;
+	}
+
+	//ベーコンとプレイヤーの当たり判定
+	for (int i = 0; i < itemNum; i++) {
+		if (itemCollisionResult[i].HitNum > 0) {
+			item_[i]->setEnabled();
+			if (i != 0) {
+				if (i == 1) {
+					player_->cure();
+				}
+				SoundManager::getInstance().play("cure");
+			}
+			else {
+				player_->chengeCheckpoint(item_[i]->getPos());
+				SoundManager::getInstance().play("interim");
+			}
+		}
+	}
+
+	if (stageNum_ == 2) {
+		for (int i = 0; i < baneNum; i++) {
+			if (baneCollisionResult[i].HitNum > 0) {
+				player_->FlyAway();
+			}
+		}
+	}
+
+	//当たり判定情報の初期化
+	MV1CollResultPolyDimTerminate(fryPanResult);
+	if (stageNum_ == 2) {
+		for (int i = 0; i < baneNum; i++) {
+			MV1CollResultPolyDimTerminate(baneCollisionResult[i]);
+		}
+	}
+	for (int i = 0; i < itemNum; i++) {
+		if (item_[i]->isEnabled()) {
+			MV1CollResultPolyDimTerminate(itemCollisionResult[i]);
+		}
+	}
+}
+
 /// <summary>
 /// フェードイン処理
 /// </summary>
 /// <param name="input"></param>
 void GameMain::fadeInUpdate(const InputState& input)
 {
+	SoundManager::getInstance().setBGMRate(static_cast<float>(60 - fadeTimer_) / 60.0f);
 	fadeValue_ = static_cast <int>(255 * (static_cast<float>(fadeTimer_) / static_cast<float>(fadeInterval_)));
 	if (--fadeTimer_ == 0) {
 		updateFunc_ = &GameMain::normalUpdate;
@@ -307,6 +453,7 @@ void GameMain::normalUpdate(const InputState& input)
 		if (!deadFlag_) {
 			player_->update(input);
 			camera_->update(input, player_, pictographFlag_, stick_);
+			arrow_->update(fryPan_->getPos(), player_->getPos());
 			for (auto& item : item_) {
 				item->update();
 			}
@@ -319,45 +466,8 @@ void GameMain::normalUpdate(const InputState& input)
 		deadFlag_ = true;
 	}
 
-	int baneNum = bane_num + 1;
-
-	//当たり判定用変数
-	MV1_COLL_RESULT_POLY_DIM itemCollisionResult[4];
-	MV1_COLL_RESULT_POLY_DIM baneCollisionResult[bane_num + 1];
-	//関数を使用し当たっているかの情報を変数に代入する
-	for (int i = 0; i < itemNum;i++) {
-		itemCollisionResult[i] = MV1CollCheck_Capsule(item_[i]->getModelHandle(), item_[i]->getFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
-	}
-
-	for (int i = 0; i < baneNum;i++) {
-		baneCollisionResult[i] = MV1CollCheck_Capsule(bane_[i]->getModelHandle(), bane_[i]->getColFrameIndex(), player_->getPos(), player_->getlastPos(), player_->getRadius());
-	}
-	
-
-	//フライパンの中心とプレイヤーの当たり判定
-	MV1_COLL_RESULT_POLY_DIM fryPanResult;
-	MV1RefreshCollInfo(player_->getModel(), -1);
-	fryPanResult = MV1CollCheck_Sphere(player_->getModel(), -1, fryPan_->getPos(), 60);
-
-	if (fryPanResult.HitNum > 0) {
-		player_->stateChange();
-		player_->setPos(fryPan_->getPos());
-		updateFunc_ = &GameMain::fadeOutUpdate;
-	}
-
-	//ベーコンとプレイヤーの当たり判定
-	for (int i = 0; i < itemNum; i++) {
-		if (itemCollisionResult[i].HitNum > 0) {
-			item_[i]->setEnabled();
-		}
-	}
-
-	for (int i = 0; i < baneNum; i++) {
-		if (baneCollisionResult[i].HitNum > 0) {
-			player_->FlyAway();
-		}
-	}
-
+	//当たり判定
+	checkCollision();
 	
 	//メイン処理を終了させる
 	if (deadFlag_) {
@@ -387,17 +497,6 @@ void GameMain::normalUpdate(const InputState& input)
 		}
 	}
 	
-	arrow_->update(fryPan_->getPos(), player_->getPos());
-
-	//当たり判定情報の初期化
-	MV1CollResultPolyDimTerminate(fryPanResult);
-	for (int i = 0; i < baneNum; i++) {
-		MV1CollResultPolyDimTerminate(baneCollisionResult[i]);
-	}
-	for (int i = 0; i < itemNum;i++) {
-		MV1CollResultPolyDimTerminate(itemCollisionResult[i]);
-	}
-
 	SetLightPosition({ player_->getPos().x,player_->getPos().y + 200,player_->getPos().z });
 
 }
@@ -418,6 +517,7 @@ void GameMain::fadeOutUpdate(const InputState& input)
 
 	if (deadFlag_) {
 		manager_.pushScene(new GameOver(manager_, stageNum_,gameOverHandle_));
+		SoundManager::getInstance().playMusic("data/sound/BGM/bgm4.mp3");
 	}
 	else {
 		manager_.pushScene(new GameEnd(manager_,stageNum_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_, invalidBaconNum));
