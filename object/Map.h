@@ -32,7 +32,5 @@ private:
 
 
 	std::shared_ptr<Model> stage_;
-
-	std::shared_ptr<Model> ground_;
 };
 

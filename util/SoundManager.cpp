@@ -24,6 +24,9 @@ SoundManager::SoundManager() {
 	loadSoundFile("bake");
 	loadSoundFile("cure");
 	loadSoundFile("interim");
+	loadSoundFile("bane");
+	loadSoundFile("select");
+	loadSoundFile("decision");
 	setSEVolume(m_volumeSE);
 	setBGMVolume(m_volumeBGM);
 }
@@ -103,10 +106,14 @@ int SoundManager::getBGMVolume() const
 	return m_volumeBGM;
 }
 
-void SoundManager::stopBGMAndSE(const char* name)
+void SoundManager::stopSE(const char* name)
 {
-	StopMusic();
 	if (name != nullptr) {
 		StopSoundMem(nameAndHandleTable_[name]);
 	}
+}
+
+void SoundManager::stopBGM()
+{
+	StopMusic();
 }

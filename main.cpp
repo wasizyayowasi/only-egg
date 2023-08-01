@@ -1,4 +1,5 @@
 #include "DxLib.h"
+#include "EffekseerForDXLib.h"
 #include "util/game.h"
 #include "Scene/SceneManager.h"
 #include "Scene/SceneTitle.h"
@@ -24,6 +25,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return -1;			// エラーが起きたら直ちに終了
 	}
 
+	// Effekseerを初期化する。
+	// 引数には画面に表示する最大パーティクル数を設定する。
+	if (Effkseer_Init(8000) == -1)
+	{
+		DxLib_End();
+		return -1;
+	}
+
+	// DXライブラリのデバイスロストした時のコールバックを設定する。
+	// ウインドウとフルスクリーンの切り替えが発生する場合は必ず実行する。
+	// ただし、DirectX11を使用する場合は実行する必要はない。
+	Effekseer_SetGraphicsDeviceLostCallbackFunctions();
+
 	//ダブルバッファモード
 	SetDrawScreen(DX_SCREEN_BACK);
 
@@ -37,11 +51,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	InputState input;
 	SceneManager manager;
-	manager.changeScene(new StageSelect(manager));
+	manager.changeScene(new SceneTitle(manager));
 
 	while (ProcessMessage() == 0) {
 
 		LONGLONG time = GetNowHiPerformanceCount();
+
+		Effekseer_Sync3DSetting();
+
 		//画面のクリア
 		ClearDrawScreen();
 
@@ -62,6 +79,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 	}
+
+	// Effekseerを終了する。
+	Effkseer_End();
 
 	DxLib_End();				// ＤＸライブラリ使用の終了処理
 

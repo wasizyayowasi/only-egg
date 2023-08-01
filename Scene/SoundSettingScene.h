@@ -13,8 +13,17 @@ public:
 	void update(const InputState& input);
 	void draw();
 private:
+
+	int selectNum_ = 0;
+	int color_ = 0xff0000;
+
+	int eggHandle_ = 0;
+	int soundHandle_ = 0;
+
 	int m_waitInterval = 60;	//値が変化するインターバル
 	int m_pressTime = 0;		//押しっぱなしの時間
+
+	bool decision_ = false;
 
 	/// <summary>
 	/// BGMボリュームを加速しつつ変更する

@@ -10,8 +10,6 @@ public:
 	void update(const InputState& input);
 	void draw();
 
-	void externalFileExport();
-
 private:
 
 	int stageNum_ = 0;

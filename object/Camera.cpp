@@ -93,7 +93,7 @@ void Camera::updateCamera(VECTOR playerPos)
 	VECTOR cameraPos = VTransform(cameraPos_, cameraMtx);
 
 	// カメラからどれだけ離れたところ( Near )から、 どこまで( Far )のものを描画するかを設定
-	SetCameraNearFar(5.0f, 18000.0f);
+	SetCameraNearFar(5.0f, 8000.0f);
 
 	// カメラの視野角を設定(ラジアン)
 	SetupCamera_Perspective(60.0f * DX_PI_F / 180.0f);

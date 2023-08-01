@@ -3,10 +3,10 @@
 
 namespace {
 	//ファイル名
-	const char* const egg_name = "data/mapObject/cube.mv1";
 	const char* const stage_file_name = "data/mapObject/Yroom.mv1";
-	const char* const stage3_file_name = "data/mapObject/Nroom.mv1";
 	const char* const stage2_file_name = "data/mapObject/Mroom.mv1";
+	const char* const stage3_file_name = "data/mapObject/Nroom.mv1";
+	const char* const stage4_file_name = "data/mapObject/pc.mv1";
 
 	//サイズ
 	VECTOR groundScale = { 20.0f, 10.0f, 10.0f };
@@ -32,7 +32,7 @@ Map::Map(int stageNum)
 			stage_ = std::make_shared<Model>(stage3_file_name);
 			break;
 		case 3:
-			stage_ = std::make_shared<Model>(stage_file_name);
+			stage_ = std::make_shared<Model>(stage4_file_name);
 			break;
 		}
 	}
@@ -45,21 +45,6 @@ Map::Map(int stageNum)
 		stage_->setPos({0,-2,0});
 	}
 	
-	//ポジション設定
-	{
-	}
-
-	//回転設定
-	{
-	}
-
-
-	//↓仮
-	ground_ = std::make_shared<Model>(egg_name);
-
-	ground_->setScale(groundScale);
-	ground_->setPos({ 0.0f,-2000.0f, 0.0f });
-
 	float x = 0.0f;
 }
 

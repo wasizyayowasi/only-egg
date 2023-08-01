@@ -64,7 +64,8 @@ public:
 	int  getBGMVolume()const;
 
 	//サウンドを全部一時停止する
-	void stopBGMAndSE(const char* name = nullptr);
+	void stopSE(const char* name = nullptr);
+	void stopBGM();
 
 	//サウンド情報のセーブ
 	void saveSoundConfig();

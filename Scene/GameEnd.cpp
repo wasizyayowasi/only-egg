@@ -13,6 +13,11 @@
 #include <string>
 #include <fstream>
 
+namespace{
+	//音源ファイルパス
+	const char* const waltz_file_name = "data/sound/BGM/bgm6.mp3";
+}
+
 GameEnd::GameEnd(SceneManager& manager, int stageNum, int resultHandle, int figureHandle[], int secondTime, int minuteTime,float remainingHp,int baconNum) :
 	SceneBase(manager),
 	stageNum_(stageNum),
@@ -30,7 +35,9 @@ GameEnd::GameEnd(SceneManager& manager, int stageNum, int resultHandle, int figu
 		rewards = false;
 	}
 
-	externalFileExport();
+	SoundManager::getInstance().stopBGM();
+	SoundManager::getInstance().playMusic(waltz_file_name);
+
 }
 
 GameEnd::~GameEnd()
@@ -61,7 +68,24 @@ void GameEnd::update(const InputState& input)
 			manager_.changeScene(new StageSelect(manager_));
 			break;
 		}
-		SoundManager::getInstance().stopBGMAndSE("bake");
+		SoundManager::getInstance().stopSE("bake");
+	}
+
+	if (minuteTime_ < 7) {
+		if (minuteTime_ <= 6) {
+			questRewards[0] = true;
+		}
+		else if (minuteTime_ == 7 && secondTime_ == 0) {
+			questRewards[0] = true;
+		}
+	}
+
+	if (remainingHp_ * 100 > 50) {
+		questRewards[1] = true;
+	}
+
+	if (baconNum_ == 2) {
+		questRewards[2] = true;
 	}
 
 }
@@ -121,58 +145,5 @@ void GameEnd::draw()
 		DrawGraph(Game::kScreenWidth / 2 + 110, Game::kScreenHeight / 2 - 10, figureHandle_[12], true);
 	}
 
-}
-
-void GameEnd::externalFileExport()
-{
-	std::ofstream writing_file;
-	std::string filename = "mapInformation.txt";
-	writing_file.open(filename, std::ios::out);
-
-	char tempStageNum[20];
-//	char tempMinute[20];
-//	char tempSecond[20];
-	char tempStar[20];
-	int rewardNum = 0;
-
-
-	if (minuteTime_ < 7) {
-		if (minuteTime_ <= 6) {
-			questRewards[0] = true;
-		}
-		else if (minuteTime_ == 7 && secondTime_ == 0) {
-			questRewards[0] = true;
-		}
-	}
-
-	if (remainingHp_ * 100 > 50) {
-		questRewards[1] = true;
-	}
-
-	if (baconNum_ == 2) {
-		questRewards[2] = true;
-	}
-
-
-	for (auto& rewards : questRewards) {
-		if (rewards) {
-			rewardNum++;
-		}
-	}
-
-	sprintf_s(tempStageNum, "%d", stageNum_);
-//	sprintf_s(tempMinute, "%d", minuteTime_);
-//	sprintf_s(tempSecond, "%d", secondTime_);
-	sprintf_s(tempStar, "%d", rewardNum);
-
-	std::string stage = tempStageNum;
-//	std::string minute = tempMinute;
-//	std::string second = tempSecond;
-	std::string star = tempStar;
-
-//	writing_file << stage << std::endl << minute  << std::endl << second << std::endl << star << std::endl;
-	writing_file << stage << std::endl << star << std::endl;
-
-	writing_file.close();
 }
 

@@ -20,19 +20,29 @@
 #include "../util/game.h"
 #include "../util/InputState.h"
 
+#include "EffekseerForDXLib.h"
 #include <cmath>
 
 namespace {
-	//ファイルパス
+	//画像ファイルパス
 	const char* const pictograph_file_name = "data/graph/pictoGraph2.png";
 	const char* const pictographDisk_file_name = "data/graph/pictoGraphDisk.png";
-	const char* const menu_graph = "data/graph/menuGraph.png";
+	const char* const menu_graph = "data/graph/menuGraph1.png";
 	const char* const result_graph = "data/graph/result.png";
 	const char* const clock_graph = "data/graph/clock.png";
-	const char* const bacon_file_name = "data/object/bacon.mv1";
 	const char* const gameOver_file_name = "data/graph/gameover.png";
+	const char* const option_file_name = "data/graph/optionDisplay.png";
+	//モデルファイルパス
+	const char* const bacon_file_name = "data/object/bacon.mv1";
 	const char* const arrow_file_name = "data/object/arrow.mv1";
 	const char* const bane_file_name = "data/object/bane.mv1";
+	//音源ファイルパス
+	const char* const paradise_file_name = "data/sound/BGM/bgm1.mp3";
+	const char* const sundial_file_name = "data/sound/BGM/bgm2.mp3";
+	const char* const the_solid_earth_file_name = "data/sound/BGM/bgm3.mp3";
+	const char* const death_file_name = "data/sound/BGM/bgm4.mp3";
+	//エッフェクシア
+	const char* const sprite_file_name = "data/effekseer/Simple_Sprite_BillBoard.efkefc";
 	//複製ベーコン数
 	constexpr int duplication_bacon_num = 1;
 	//パッドの右スティックの傾き
@@ -83,8 +93,14 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 		menugraphHandle_ = LoadGraph(menu_graph);
 		resultgraphHandle_ = LoadGraph(result_graph);
 		gameOverHandle_ = LoadGraph(gameOver_file_name);
+		optiongraphHandle_ = LoadGraph(option_file_name);
 		LoadDivGraph(pictograph_file_name, 8, 8, 1, pictograph_size, pictograph_size, pictographHandle_);
 		LoadDivGraph(clock_graph, clockGraphNum_, clockGraphNum_, 1, pictograph_Billborad_size, pictograph_Billborad_size, clockgraphHandle_);
+	}
+
+	effectHandle_ = LoadEffekseerEffect(sprite_file_name, 20.0f);
+	for (auto enable : effectIsEnable_) {
+		enable = false;
 	}
 
 	player_->setMapData(map_);
@@ -98,7 +114,18 @@ GameMain::GameMain(SceneManager& manager, int stageNum) : SceneBase(manager),upd
 	ChangeLightTypePoint({ 0,500,0 }, 2000.0f, 0.0f, 0.006f, 0.0f);
 
 	SoundManager::getInstance().setBGMRate(0.0f);
-	SoundManager::getInstance().playMusic("data/sound/BGM/bgm1.mp3");
+	switch (stageNum_) {
+	case 0:
+		SoundManager::getInstance().playMusic(paradise_file_name);
+		break;
+	case 1:
+		SoundManager::getInstance().playMusic(the_solid_earth_file_name);
+		break;
+	case 2:
+		SoundManager::getInstance().playMusic(sundial_file_name);
+		break;
+	}
+
 
 }
 
@@ -119,6 +146,7 @@ GameMain::~GameMain()
 	for (auto& graph : clockgraphHandle_) {
 		DeleteGraph(graph);
 	}
+//	DeleteEffekseerEffect(effectHandle_);
 }
 
 /// <summary>
@@ -173,10 +201,16 @@ void GameMain::draw()
 		DrawCircleAA(Game::kScreenWidth / 2 + stickRot.x * 200, Game::kScreenHeight / 2 + stickRot.y * 200, 20, 32, 0xff0000, true);
 	}
 
+	{//テレポートカウントダウン表示
+		VECTOR pictographPos;
+		pictographPos = { player_->getPos().x,player_->getPos().y + 70,player_->getPos().z };
+		DrawBillboard3D(pictographPos, 0.5f, 0.5f, pictograph_Billborad_size, pictograph_angle, clockgraphHandle_[player_->teleportCountDown()], true);
+	}
+	
+
 	{//絵文字の座標、描画
 		VECTOR pictographPos;
 		pictographPos = { player_->getPos().x - 60,player_->getPos().y + 70,player_->getPos().z };
-
 		DrawBillboard3D(pictographPos, 0.5f, 0.5f, pictograph_Billborad_size, pictograph_angle, pictographHandle_[pictographNum_], true);
 	}
 
@@ -191,8 +225,15 @@ void GameMain::draw()
 		DrawGraph(1810, 10, clockgraphHandle_[clearTimeSecond_ % 10], true);
 	}
 
-	//ゴール文字の描画
-	DrawString(Game::kScreenWidth / 2 - 20, 20, "GOAL", 0xffffff);
+	//オプション画像
+	DrawGraph(0, 0, optiongraphHandle_, true);
+
+	for (int i = 0; i < 4;i++) {
+		if (effectIsEnable_[i]) {
+			DrawEffekseer3D_Begin();
+			DrawEffekseer3D_Draw(playEffectHandle_[i]);
+		}
+	}
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, fadeValue_);
 	//画面全体を真っ黒に塗りつぶす
@@ -286,6 +327,7 @@ void GameMain::itemSetPosition()
 			switch (stageNum_) {
 			case 0:
 				item_[i]->setPos({ 2820,2415,795 });
+				//item_[i]->setPos({ 200,0,0});
 				break;
 			case 1:
 				item_[i]->setPos({ -690,2755,970 });
@@ -300,6 +342,7 @@ void GameMain::itemSetPosition()
 			switch (stageNum_) {
 			case 0:
 				item_[i]->setPos({ 3290,2415,795 });
+				//item_[i]->setPos({ 200,0,200 });
 				break;
 			case 1:
 				item_[i]->setPos({ -5,1680,-1170 });
@@ -314,6 +357,7 @@ void GameMain::itemSetPosition()
 			switch (stageNum_) {
 			case 0:
 				item_[i]->setPos({ 2155,1065,945 });
+				//item_[i]->setPos({ 200,0,400 });
 				break;
 			case 1:
 				item_[i]->setPos({ 390,1300,-3460 });
@@ -328,6 +372,7 @@ void GameMain::itemSetPosition()
 			switch (stageNum_) {
 			case 0:
 				item_[i]->setPos({ 7205,1200,-2095 });
+				//item_[i]->setPos({ 200,0,600 });
 				break;
 			case 1:
 				item_[i]->setPos({ -865,2940,2445 });
@@ -377,6 +422,8 @@ void GameMain::checkCollision()
 	for (int i = 0; i < itemNum; i++) {
 		if (itemCollisionResult[i].HitNum > 0) {
 			item_[i]->setEnabled();
+			effectTime_ = 0;
+			effectIsEnable_[i] = true;
 			if (i != 0) {
 				if (i == 1) {
 					player_->cure();
@@ -394,6 +441,7 @@ void GameMain::checkCollision()
 		for (int i = 0; i < baneNum; i++) {
 			if (baneCollisionResult[i].HitNum > 0) {
 				player_->FlyAway();
+				SoundManager::getInstance().play("bane");
 			}
 		}
 	}
@@ -410,6 +458,31 @@ void GameMain::checkCollision()
 			MV1CollResultPolyDimTerminate(itemCollisionResult[i]);
 		}
 	}
+}
+
+void GameMain::effectUpdate()
+{
+	if (effectTime_ % 60 == 0) {
+		for (int i = 0; i < 4; i++) {
+			playEffectHandle_[i] = PlayEffekseer3DEffect(effectHandle_);
+		}
+	}
+
+	if (effectTime_ > 59) {
+		for (int i = 0; i < 4; i++) {
+			StopEffekseer3DEffect(playEffectHandle_[i]);
+			effectIsEnable_[i] = false;
+		}
+	}
+
+	for (int i = 0; i < 4; i++) {
+		SetPosPlayingEffekseer3DEffect(playEffectHandle_[i], item_[i]->getPos().x, item_[i]->getPos().y, item_[i]->getPos().z);
+	}
+
+
+	UpdateEffekseer3D();
+
+	++effectTime_;
 }
 
 /// <summary>
@@ -434,6 +507,8 @@ void GameMain::normalUpdate(const InputState& input)
 {
 	deadFlag_ = false;
 
+	effectUpdate();
+
 	//絵文字表示時間
 	{
 		pictographDisplayCount_++;
@@ -443,7 +518,6 @@ void GameMain::normalUpdate(const InputState& input)
 		}
 	}
 	
-
 	pictographFlag_ = false;
 
 	//絵文字更新
@@ -479,11 +553,6 @@ void GameMain::normalUpdate(const InputState& input)
 		manager_.pushScene(new PauseScene(manager_, stageNum_, player_, menugraphHandle_,gameOverHandle_));
 	}
 
-	//いらない
-	/*if (input.isTriggered(InputType::pause)) {
-		updateFunc_ = &GameMain::fadeOutUpdate;
-	}*/
-
 	//TODO:時間の処理の変更
 	{
 		tempTime_++;
@@ -509,15 +578,15 @@ void GameMain::fadeOutUpdate(const InputState& input)
 {
 	float remainingHp_ = static_cast<float>(player_->getHp()) / 400.0f;
 	int invalidBaconNum = 0;
-	for (int i = 3; i < itemNum;i++) {
-		if (item_[i]->isEnabled()) {
+	for (int i = 2; i < itemNum;i++) {
+		if (!item_[i]->isEnabled()) {
 			invalidBaconNum++;
 		}
 	}
 
 	if (deadFlag_) {
 		manager_.pushScene(new GameOver(manager_, stageNum_,gameOverHandle_));
-		SoundManager::getInstance().playMusic("data/sound/BGM/bgm4.mp3");
+		SoundManager::getInstance().playMusic(death_file_name);
 	}
 	else {
 		manager_.pushScene(new GameEnd(manager_,stageNum_,resultgraphHandle_, clockgraphHandle_,clearTimeSecond_,clearTimeMinute_, remainingHp_, invalidBaconNum));

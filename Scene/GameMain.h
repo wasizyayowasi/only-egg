@@ -29,6 +29,8 @@ public:
 
 	void checkCollision();
 
+	void effectUpdate();
+
 private:
 
 	//アイテムの数
@@ -41,6 +43,12 @@ private:
 	int resultgraphHandle_ = -1;
 	int clockgraphHandle_[16];
 	int gameOverHandle_ = -1;
+	int optiongraphHandle_ = -1;
+	//エフェクシア関係
+	int effectHandle_ = -1;
+	int playEffectHandle_[4];
+	int effectTime_ = 0;
+	bool effectIsEnable_[4];
 	//シーン遷移関係
 	bool deadFlag_ = false;
 	//絵文字円盤の描画判断

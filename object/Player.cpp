@@ -19,7 +19,7 @@ namespace {
 	constexpr float speed = 5.0f;
 	//半径
 	constexpr float radius = 15.0f;
-	constexpr float collition_radius = 100.0f;
+	constexpr float collition_radius = 200.0f;
 
 	// カメラの初期位置
 	constexpr VECTOR camera_target{ 0, 800, -120 };
@@ -38,7 +38,7 @@ namespace {
 	constexpr float player_height = 30.0f;
 
 	//初期位置
-	constexpr VECTOR start_pos = { 0,30,200 };
+	constexpr VECTOR start_pos = { 0,20,200 };
 	//ダメージ
 	constexpr int damege = 15;
 }
@@ -192,14 +192,17 @@ void Player::checkCollitionStage(VECTOR moveVector)
 			hitFlag = false;
 			for (i = 0; i < yukaNum; i++) {
 				poly = yuka[i];
-				lineRes = HitCheck_Line_Triangle(nowPos, VAdd(nowPos, VGet(nowPos.x, nowPos.y + player_height, nowPos.z)), poly->Position[0], poly->Position[1], poly->Position[2]);
-				if (lineRes.HitFlag == false)continue;
+				lineRes = HitCheck_Line_Triangle(nowPos, VAdd(nowPos, VGet(0.0f, player_height, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
+				if (lineRes.HitFlag == FALSE)continue;
 				if (hitFlag == 1 && minY < lineRes.Position.y)continue;
 				hitFlag = true;
 				minY = lineRes.Position.y;
 			}
 			if (hitFlag) {
 				nowPos.y = minY - player_height;
+				if (jumpVec_ != 36.0f) {
+					jumpVec_ = -jumpVec_;
+				}
 			}
 		}
 		else {
@@ -208,10 +211,10 @@ void Player::checkCollitionStage(VECTOR moveVector)
 			for (i = 0; i < yukaNum; i++) {
 				poly = yuka[i];
 				if (jump_) {
-					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0, player_height, 0)), VAdd(nowPos, VGet(0.0f, -1.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
+					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0, player_height, 0)), VAdd(nowPos, VGet(0.0f, -10.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
 				}
 				else {
-					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0, player_height, 0)), VAdd(nowPos, VGet(0.0f, -30.0f, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
+					lineRes = HitCheck_Line_Triangle(VAdd(nowPos, VGet(0, player_height, 0)), VAdd(nowPos, VGet(0.0f, -player_height, 0.0f)), poly->Position[0], poly->Position[1], poly->Position[2]);
 				}
 				if (lineRes.HitFlag == false) continue;
 				if (hitFlag && maxY > lineRes.Position.y)continue;
@@ -220,7 +223,7 @@ void Player::checkCollitionStage(VECTOR moveVector)
 			}
 			if (hitFlag) {
 				nowPos.y = maxY;
-				jumpVec_ = -1.0f;
+				jumpVec_ = 0.0f;
 				if (jump_) {
 					jump_ = false;
 					hp_->onDamage(damege);
@@ -246,22 +249,6 @@ void Player::checkCollitionStage(VECTOR moveVector)
 void Player::update(const InputState& input)
 {
 //	MV1RefreshCollInfo(model_->getModelHandle(), -1);
-
-	{//ジャンプ処理
-		if (jump_) {
-			jumpVec_ += gravity;
-			pos_.y += jumpVec_;
-			if (pos_.y <= 0.0f) {
-				pos_.y = 0.0f;
-				jumpVec_ = 0.0f;
-				jump_ = false;
-				if (landingCount_ > 0) {
-					hp_->onDamage(damege);
-					landingCount_--;
-				}
-			}
-		}
-	}
 
 
 	lastPos_ = { pos_.x,pos_.y + 15,pos_.z };
@@ -306,8 +293,14 @@ void Player::update(const InputState& input)
 		}
 	}
 
-	if (input.isTriggered(InputType::checkpoint)) {
-		checkpointTeleport();
+	if (input.isPressed(InputType::checkpoint)) {
+		if (--teleportCount_ < 0) {
+			checkpointTeleport();
+			teleportCount_ = 180;
+		}
+	}
+	else {
+		teleportCount_ = 180;
 	}
 
 
@@ -318,6 +311,23 @@ void Player::update(const InputState& input)
 
 	if (!(moveVec.x == 0.00000f && moveVec.y == 0.00000f && moveVec.z == 0.00000f)) {
 		moveVec = VScale(VNorm(moveVec),10.0f);
+	}
+
+	{//ジャンプ処理
+		if (jump_) {
+			jumpVec_ += gravity;
+			moveVec.y = jumpVec_;
+			if (pos_.y <= 0.0f) {
+				pos_.y = 0.0f;
+				jump_ = false;
+				if (landingCount_ > 0) {
+					landingCount_--;
+				}
+			}
+			if (jumpVec_ < -jump_power) {
+				jumpVec_ += 0.5f;
+			}
+		}
 	}
 
 	checkCollitionStage(moveVec);
@@ -335,11 +345,6 @@ void Player::draw()
 		sunnyEggModel_->draw();
 	}
 
-	DrawFormatString(0, 100, 0xff0000, "%f :%f :%f", pos_.x, pos_.y, pos_.z);
-	DrawFormatString(0, 116, 0xff0000, "%f :%f :%f", checkpointPos_.x, checkpointPos_.y, checkpointPos_.z);
-	DrawFormatString(0, 132, 0xff0000, "%f",jumpVec_);
-	//DrawSphere3D(pos_, 100, 32, 0xffffff, 0xffffff, true);
-	DrawFormatString(0, 148, 0xff0000, "%d", HitDim.HitNum);
 	DrawLine3D(pos_, { pos_.x,pos_.y + player_height,pos_.z }, 0xff0000);
 
 	hp_->draw();
@@ -438,4 +443,23 @@ void Player::checkpointTeleport()
 void Player::chengeCheckpoint(VECTOR pos)
 {
 	checkpointPos_ = pos;
+}
+
+int Player::teleportCountDown()
+{
+	int temp;
+	if (teleportCount_ < 181 && teleportCount_ > 121) {
+		temp = 3;
+	}
+	else if(teleportCount_ < 120 && teleportCount_ > 61) {
+		temp = 2;
+	}
+	else if (teleportCount_ < 61 && teleportCount_ > 1) {
+		temp = 1;
+	}
+	else {
+		temp = 0;
+	}
+
+	return temp;
 }

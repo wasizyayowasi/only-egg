@@ -7,7 +7,7 @@ InputState::InputState()
 	
 	//ŽŸ‚Ö
 	defaultMapTable[InputType::next] = {		{InputCategory::keybd,KEY_INPUT_RETURN},
-												{InputCategory::pad, PAD_INPUT_2},
+												{InputCategory::pad, PAD_INPUT_1},
 												{InputCategory::mouse,MOUSE_INPUT_LEFT} };
 	//–ß‚é
 	defaultMapTable[InputType::prev] = {		{InputCategory::keybd,KEY_INPUT_F},
@@ -46,7 +46,7 @@ InputState::InputState()
 												{InputCategory::pad,PAD_INPUT_3} };
 
 	defaultMapTable[InputType::space] = {		{InputCategory::keybd,KEY_INPUT_SPACE},
-												{InputCategory::pad,PAD_INPUT_2} };
+												{InputCategory::pad,PAD_INPUT_1} };
 
 
 

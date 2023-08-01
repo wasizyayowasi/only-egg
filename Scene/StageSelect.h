@@ -10,9 +10,9 @@ public:
 	void update(const InputState& input);
 	void draw();
 
-	void externalFileLoading();
-
 private:
+
+	int handle_ = -1;
 
 	void fadeInUpdate(const InputState& input);
 	void normalUpdate(const InputState& input);

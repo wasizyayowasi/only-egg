@@ -12,6 +12,7 @@
 
 #include "../util/InputState.h"
 #include "../util/game.h"
+#include "../util/SoundManager.h"
 
 #include<algorithm>
 
@@ -37,13 +38,16 @@ void PauseScene::update(const InputState& input)
 	if (input.isTriggered(InputType::up)) {
 		cursorNum_--;
 		cursorNum_ = (std::max)(cursorNum_, 0);
+		SoundManager::getInstance().play("select");
 	}
 	else if (input.isTriggered(InputType::down)) {
 		cursorNum_++;
-		cursorNum_ = (std::min)(cursorNum_, 5);
+		cursorNum_ = (std::min)(cursorNum_, 4);
+		SoundManager::getInstance().play("select");
 	}
 	
 	if (input.isTriggered(InputType::next)) {
+		SoundManager::getInstance().play("decision");
 		switch (cursorNum_) {
 		case 0:
 			manager_.popScene();
@@ -77,8 +81,18 @@ void PauseScene::draw()
 
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);//í èÌï`âÊÇ…ñﬂÇ∑
 
-	DrawGraph(0, 0, handle_, true);
+	for (int i = 0; i < 5; i++) {
 
-	DrawString(500, cursorNum_ * 130 + 280, "âE", 0xff0000);
+		int color = 0xffffff;
+
+		if (i == cursorNum_) {
+			color = 0xff0000;
+		}
+
+		DrawBox(650, i * 130 + 250, 1270, i * 130 + 330, color, true);
+	}
+	
+
+	DrawGraph(0, 0, handle_, true);
 
 }

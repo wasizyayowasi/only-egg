@@ -49,13 +49,16 @@ public:
 
 	void chengeCheckpoint(VECTOR pos);
 
+	int teleportCountDown();
+
 private:
 	//チェックポイント座標
 	VECTOR checkpointPos_;
 
 	int landingCount_ = 0;
+	int teleportCount_ = 180;
 
-	bool jump_ = true;
+	bool jump_ = false;
 	bool sunnyEggFlag_ = false;
 	bool deadFlag_ = false;
 

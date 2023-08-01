@@ -1,9 +1,12 @@
 #include "StageSelect.h"
 #include "SceneManager.h"
 #include "GameMain.h"
+#include "SceneTitle.h"
 
+#include "../util/SoundManager.h"
 #include "../util/game.h"
 #include "../util/InputState.h"
+#include "../util/SoundManager.h"
 
 #include <algorithm>
 #include <fstream>
@@ -14,9 +17,20 @@
 
 #include "DxLib.h"
 
+namespace {
+	const char* const fileName = "data/graph/stageSelect.png";
+
+	const char* const talkative_person_file_name = "data/sound/BGM/bgm5.mp3";
+}
+
 StageSelect::StageSelect(SceneManager& manager):SceneBase(manager),updateFunc_(&StageSelect::fadeInUpdate)
 {
-	externalFileLoading();
+
+	handle_ = LoadGraph(fileName);
+
+	SoundManager::getInstance().stopBGM();
+	SoundManager::getInstance().playMusic(talkative_person_file_name);
+
 }
 
 StageSelect::~StageSelect()
@@ -38,39 +52,15 @@ void StageSelect::update(const InputState& input)
 /// </summary>
 void StageSelect::draw()
 {
-	DrawString(0, 0, "stageSelect", 0xffffff);
+	DrawBox(208 + selectNum * 380, Game::kScreenHeight / 4 + 25, 208 + selectNum * 380 + 360, Game::kScreenHeight / 4 + 25 + 304, 0x990000, true);
 
-	DrawBox(385 + selectNum * 300, Game::kScreenHeight / 2 - 125, 435 + selectNum * 300 + 200, Game::kScreenHeight / 2 + 125, 0xffffff, true);
-
-	int x = Game::kScreenWidth / 2 - 550;
-	for (int i = 0; i < 4; i++) {
-		DrawBox(x, Game::kScreenHeight / 2 - 100, x + 200, Game::kScreenHeight / 2 + 100, 0x448844, true);
-		x += 300;
-	}
+	DrawGraph(0, 0, handle_, true);
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, fadeValue_);
 	//‰æ–Ê‘S‘Ì‚ð^‚Á•‚É“h‚è‚Â‚Ô‚·
 	DrawBox(0, 0, Game::kScreenWidth, Game::kScreenHeight, fadeColor_, true);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-}
-
-void StageSelect::externalFileLoading()
-{
-	std::ifstream reading_file;
-	std::string filename = "mapInformation.txt";
-	reading_file.open(filename, std::ios::in);
-
-	std::string reading_line_buffer;
-	while (std::getline(reading_file, reading_line_buffer)) {
-		std::cout << reading_line_buffer << std::endl;
-
-		std::istringstream ss;
-		ss = std::istringstream(reading_line_buffer);
-
-	}
-
-	
 }
 
 /// <summary>
@@ -95,14 +85,22 @@ void StageSelect::normalUpdate(const InputState& input)
 	if (input.isTriggered(InputType::left)) {
 		selectNum--;
 		selectNum = (std::max)(selectNum, 0);
+		SoundManager::getInstance().play("select");
 	}
 	else if (input.isTriggered(InputType::right)) {
 		selectNum++;
 		selectNum = (std::min)(selectNum, 3);
+		SoundManager::getInstance().play("select");
 	}
 
 	if (input.isTriggered(InputType::next)) {
-		updateFunc_ = &StageSelect::fadeOutUpdate;
+		SoundManager::getInstance().play("decision");
+		if (selectNum != 3) {
+			updateFunc_ = &StageSelect::fadeOutUpdate;
+		}
+	}
+	if (input.isTriggered(InputType::prev)) {
+		manager_.changeScene(new SceneTitle(manager_));
 	}
 }
 
